@@ -1,0 +1,17 @@
+/* react-calendar-timeline */
+
+.react-calendar-timeline {
+  @apply rounded;
+  @apply overflow-hidden;
+}
+
+.react-calendar-timeline .rct-scroll {
+  @apply z-0;
+}
+.react-calendar-timeline .rct-header-root {
+  @apply bg-blue-500;
+}
+
+.react-calendar-timeline .rct-item {
+  @apply rounded;
+}
