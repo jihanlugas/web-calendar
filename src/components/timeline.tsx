@@ -11,8 +11,9 @@ import {
   DateHeader,
   TimelineKeys,
 } from 'react-calendar-timeline';
+import { ImSpinner2 } from 'react-icons/im';
 
-const keys : TimelineKeys = {
+const keys: TimelineKeys = {
   groupIdKey: 'id',
   groupTitleKey: 'name',
   groupLabelKey: 'description',
@@ -20,26 +21,28 @@ const keys : TimelineKeys = {
   itemIdKey: 'id',
   itemTitleKey: 'name',
   itemDivTitleKey: 'description',
-  itemGroupKey: 'propertyId',
+  itemGroupKey: 'propertygroupId',
   itemTimeStartKey: 'startDt',
   itemTimeEndKey: 'endDt',
 }
 
-export interface TimelineItem extends TimelineItemBase<any> { 
+export interface TimelineItem extends TimelineItemBase<any> {
   groupId: number
   name: string
   start: Moment;
   end: Moment;
-  
+
 }
 export interface TimelineGroup extends TimelineGroupBase { }
 
 interface TimelineProps
   extends Omit<
     ReactCalendarTimelineProps<TimelineItem, TimelineGroup>,
-    'defaultTimeStart' | 'defaultTimeEnd' | 'sidebarWidth' | 'lineHeight' | 'minZoom' | 'maxZoom' | 'stackItems' | 'rightSidebarWidth' |'itemHeightRatio' | 'timeSteps'| 'keys'| 'items'| 'groups'
+    'defaultTimeStart' | 'defaultTimeEnd' | 'sidebarWidth' | 'lineHeight' | 'minZoom' | 'maxZoom' | 'stackItems' | 'rightSidebarWidth' | 'itemHeightRatio' | 'timeSteps' | 'keys' | 'items' | 'groups'
   > {
   // Optionally override defaultTimeStart/end
+  isLoading?: boolean;
+  propertyName: string;
   defaultTimeStart?: number;
   defaultTimeEnd?: number;
   sidebarWidth?: number;
@@ -64,6 +67,8 @@ const TimelineLib = dynamic(
 );
 
 export default function Timeline({
+  isLoading = false,
+  propertyName,
   defaultTimeStart = moment().add(-12, 'hour').valueOf(),
   defaultTimeEnd = moment().add(12, 'hour').valueOf(),
   sidebarWidth = 200,
@@ -80,8 +85,16 @@ export default function Timeline({
     const { left: leftResizeProps, right: rightResizeProps } = getResizeProps()
     const itemprops = getItemProps(item.itemProps)
 
+    const itemClass = 'rct-item rounded !font-bold !text-gray-50 !bg-green-500 border !border-green-600'
+    const selectedItemClass = 'rct-item rounded !font-bold !text-gray-50 !bg-amber-500 border !border-amber-600'
+
     return (
-      <div {...itemprops} key={itemprops.key}>
+      <div
+        {...itemprops}
+        key={itemprops.key}
+        className={itemContext.selected ? selectedItemClass : itemClass}
+
+      >
         {itemContext.useResizeHandle ? <div {...leftResizeProps} /> : ''}
 
         <div
@@ -120,9 +133,9 @@ export default function Timeline({
         <SidebarHeader>
           {({ getRootProps }) => {
             return (
-              <div {...getRootProps()} className='relative flex justify-center items-center text-2xl text-gray-50'>
-                <div>{'Timeline'}</div>
-                {/* <AiOutlineLoading3Quarters className={`absolute right-4 animate-spin ${!props.isLoading && ' hidden'}`} size={'1em'} /> */}
+              <div {...getRootProps()} className='relative flex justify-start items-center text-xl text-gray-50 px-2 font-bold'>
+                <div>{propertyName}</div>
+                <ImSpinner2 className={`absolute right-4 animate-spin ${!isLoading && ' hidden'}`} size={'1.2em'} />
               </div>
             )
           }}

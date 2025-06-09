@@ -9,7 +9,7 @@
   @apply z-0;
 }
 .react-calendar-timeline .rct-header-root {
-  @apply bg-blue-500;
+  @apply bg-primary-500;
 }
 
 .react-calendar-timeline .rct-item {

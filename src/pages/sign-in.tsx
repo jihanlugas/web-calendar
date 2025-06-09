@@ -25,8 +25,8 @@ const SingIn: NextPage<Props> = () => {
   const router = useRouter();
 
   const initFormikValue = {
-    username: 'admindemo',
-    passwd: '123456',
+    username: '',
+    passwd: '',
   };
 
   const { mutate, isPending } = useMutation({
@@ -87,7 +87,7 @@ const SingIn: NextPage<Props> = () => {
                 return (
                   <Form>
                     <div className={''}>
-                      <div className="mb-4">
+                      <div className="">
                         <TextField
                           label={'Username Atau Email'}
                           name={'username'}
@@ -96,7 +96,7 @@ const SingIn: NextPage<Props> = () => {
                           autoFocus
                         />
                       </div>
-                      <div className="mb-4">
+                      <div className="">
                         <PasswordField
                           label={'Password'}
                           name={'passwd'}
@@ -104,7 +104,7 @@ const SingIn: NextPage<Props> = () => {
                           autoComplete={'off'}
                         />
                       </div>
-                      <div className={''}>
+                      <div className={'mt-4'}>
                         <ButtonSubmit
                           label={'Login'}
                           disabled={isPending}
@@ -122,7 +122,7 @@ const SingIn: NextPage<Props> = () => {
               {'Don\'t have an account yet?'}
             </div>
             <Link href={'/sign-up'} passHref>
-              <a className={'text-blue-500'}>
+              <a className={'text-primary-500'}>
                 <div>Register Now</div>
               </a>
             </Link>

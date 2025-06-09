@@ -1,5 +1,6 @@
-@import "tailwindcss";
-@import "./react-calendar-timeline.css";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 
 
@@ -42,10 +43,10 @@ input, select, textarea{
   @apply rounded;
   @apply bg-white;
   @apply border-gray-400;
-  @apply focus:border-blue-400;
+  @apply focus:border-primary-400;
   @apply disabled:bg-gray-200;
   @apply disabled:cursor-not-allowed;
-  @apply caret-blue-500;
+  @apply caret-primary-500;
 }
 
 .datetime > input {

@@ -1,5 +1,8 @@
+import 'react-notifications-component/dist/theme.css'
+import 'animate.css/animate.min.css';
 import 'react-calendar-timeline/style.css';
 import "@/styles/globals.css";
+import "@/styles/react-calendar-timeline.css";
 import Head from 'next/head';
 import { NextPage } from 'next/types';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';

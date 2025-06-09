@@ -65,7 +65,7 @@ const SidebarAdmin: React.FC<Props> = ({ sidebar, onClickOverlay }) => {
 
     return (
       <Link href={path}>
-        <div className={isSelected ? 'flex items-center px-4 h-12 bg-blue-200 duration-300 ease-in-out ' : 'flex items-center px-4 h-12 hover:bg-blue-100 duration-300 ease-in-out '}>
+        <div className={isSelected ? 'flex items-center px-4 h-12 bg-primary-200 duration-300 ease-in-out ' : 'flex items-center px-4 h-12 hover:bg-primary-100 duration-300 ease-in-out '}>
           <Icon icon={icon} className={`mr-2 ${isSelected ? 'text-gray-700' : 'text-gray-600'}`} size={'1.2rem'} />
           <div className={` ${isSelected ? 'text-gray-700' : 'text-gray-600'}`}>{name}</div>
         </div>
@@ -84,7 +84,7 @@ const SidebarAdmin: React.FC<Props> = ({ sidebar, onClickOverlay }) => {
           <div className={`fixed bg-gray-50 h-[100dvh] flex w-80 duration-300 ${sidebar ? 'left-0' : '-left-80'}`}>
             <div className='w-full'>
               <div className='flex items-center h-16 shadow px-2'>
-                <button className='p-2 rounded-full duration-300 hover:bg-blue-100' onClick={() => onClickOverlay()}>
+                <button className='p-2 rounded-full duration-300 hover:bg-primary-100' onClick={() => onClickOverlay()}>
                   <BsList className='' size={'1.2rem'} />
                 </button>
                 <div className='p-2 text-xl'>{process.env.APP_NAME}</div>

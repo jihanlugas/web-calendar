@@ -28,7 +28,7 @@ const Breadcrumb: NextPage<Props> = ({ links }) => {
               return (
                 <div className="flex items-center" key={link.path}>
                   <Link href={link.path}>
-                    <div className='mr-4 text duration-300 text-blue-500 hover:text-blue-400'>{link.name}</div>
+                    <div className='mr-4 text duration-300 text-primary-500 hover:text-primary-400'>{link.name}</div>
                   </Link>
                   <div className='mr-4'>
                     <BsChevronRight className={''} size={'1.2rem'} />
@@ -41,7 +41,7 @@ const Breadcrumb: NextPage<Props> = ({ links }) => {
         <div className='flex items-center md:hidden'>
           {links.length > 1 && (
             <Link href={links[links.length - 2].path}>
-              <div className='mr-4 text duration-300 text-blue-500 hover:text-blue-400'>
+              <div className='mr-4 text duration-300 text-primary-500 hover:text-primary-400'>
                 <BsChevronLeft className={''} size={'1.2rem'} />
               </div>
             </Link>

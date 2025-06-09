@@ -1,4 +1,4 @@
-import { Field, ErrorMessage } from 'formik';
+import { Field, ErrorMessage, useField } from 'formik';
 import { NextPage } from 'next';
 
 interface Props extends React.HTMLProps<HTMLTextAreaElement> {
@@ -7,8 +7,13 @@ interface Props extends React.HTMLProps<HTMLTextAreaElement> {
 
 
 const TextAreaField: NextPage<Props> = ({ name, ...props }) => {
+	const [, meta] = useField(name);
+	const hasError = meta.touched && meta.error;
+
+	const className = `w-full rounded h-20 px-2 py-1 ${hasError ? 'border-rose-400' : ''} ${props.className}`;
+
 	return (
-		<div className={'flex flex-col w-full'}>
+		<div className={'flex flex-col w-full relative pb-6'}>
 			{props.label && (
 				<div className={'mb-1'}>
 					<span>{props.label}</span>
@@ -17,14 +22,14 @@ const TextAreaField: NextPage<Props> = ({ name, ...props }) => {
 			)}
 			<Field
 				as={'textarea'}
-				className={'w-full rounded h-20 px-2 py-1'}
+				className={className}
 				name={name}
 				{...props}
 			/>
 			<ErrorMessage name={name}>
 				{(msg) => {
 					return (
-						<div className={'text-rose-600 text-sm normal-case'}>{msg}</div>
+						<div className={'absolute bottom-0 text-rose-600 text-sm normal-case'}>{msg}</div>
 					);
 				}}
 			</ErrorMessage>

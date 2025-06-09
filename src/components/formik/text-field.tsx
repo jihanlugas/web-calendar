@@ -1,4 +1,4 @@
-import { FastField, ErrorMessage, Field } from 'formik';
+import { FastField, ErrorMessage, Field, useField } from 'formik';
 import { NextPage } from 'next';
 import React from 'react';
 
@@ -8,10 +8,16 @@ interface Props extends React.HTMLProps<HTMLInputElement> {
 	field?: boolean;
 }
 
-const TextField: NextPage<Props> = ({ name, type, className='', field = false, ...props }) => {
+const TextField: NextPage<Props> = ({ name, type, field = false, ...props }) => {
 	const FieldComponent = field ? Field : FastField;
+
+	const [, meta] = useField(name);
+	const hasError = meta.touched && meta.error;
+
+	const className = `w-full h-10 px-2 select-all ${hasError ? 'border-rose-400' : ''} ${props.className}`;
+
 	return (
-		<div className={'flex flex-col w-full'}>
+		<div className={'flex flex-col w-full relative pb-6'}>
 			{props.label && (
 				<div className={'mb-1'}>
 					<span>{props.label}</span>
@@ -19,7 +25,7 @@ const TextField: NextPage<Props> = ({ name, type, className='', field = false, .
 				</div>
 			)}
 			<FieldComponent
-				className={'w-full h-10 px-2 select-all ' + className}
+				className={className}
 				type={type}
 				name={name}
 				{...props}
@@ -27,7 +33,7 @@ const TextField: NextPage<Props> = ({ name, type, className='', field = false, .
 			<ErrorMessage name={name}>
 				{(msg) => {
 					return (
-						<div className={'text-rose-600 text-sm normal-case'}>{msg}</div>
+						<div className={'absolute bottom-0 text-rose-600 text-sm normal-case'}>{msg}</div>
 					);
 				}}
 			</ErrorMessage>

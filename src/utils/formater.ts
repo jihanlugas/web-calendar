@@ -44,6 +44,45 @@ export const displayDateTimeForm = (value) => {
 	}
 };
 
+export const displayDuration = (startDt, endDt, locales: string = 'en') => {
+	if (!startDt || !endDt) return '';
+
+	moment.locale(locales);
+
+	const start = moment(startDt);
+	const end = moment(endDt);
+
+	// We'll manually track the difference
+	const years = end.diff(start, 'years');
+	start.add(years, 'years');
+
+	const months = end.diff(start, 'months');
+	start.add(months, 'months');
+
+	const days = end.diff(start, 'days');
+	start.add(days, 'days');
+
+	const hours = end.diff(start, 'hours');
+	start.add(hours, 'hours');
+
+	const minutes = end.diff(start, 'minutes');
+	start.add(minutes, 'minutes');
+
+	const seconds = end.diff(start, 'seconds');
+
+	const parts: string[] = [];
+
+	if (years) parts.push(`${years} year${years !== 1 ? 's' : ''}`);
+	if (months) parts.push(`${months} month${months !== 1 ? 's' : ''}`);
+	if (days) parts.push(`${days} day${days !== 1 ? 's' : ''}`);
+	if (hours) parts.push(`${hours} hour${hours !== 1 ? 's' : ''}`);
+	if (minutes) parts.push(`${minutes} minute${minutes !== 1 ? 's' : ''}`);
+	if (seconds && parts.length === 0) parts.push(`${seconds} second${seconds !== 1 ? 's' : ''}`);
+
+	return parts.join(' ');
+
+}
+
 export const displayBoolean = (val: boolean, trueLabel: string = 'Active', falseLabel: string = 'Not Active'): string => {
 	return val ? trueLabel : falseLabel;
 };

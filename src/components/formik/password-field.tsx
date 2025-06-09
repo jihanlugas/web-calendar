@@ -1,4 +1,4 @@
-import { Field, ErrorMessage } from 'formik';
+import { Field, ErrorMessage, useField } from 'formik';
 import { NextPage } from 'next';
 import React, { useState } from 'react';
 import { IoEyeOffOutline, IoEyeOutline } from 'react-icons/io5'
@@ -18,8 +18,13 @@ const PasswordField: NextPage<Props> = ({ label, name, required, ...props }) => 
 		setShow(!show)
 	}
 
+	const [, meta] = useField(name);
+	const hasError = meta.touched && meta.error;
+
+	const className = `w-full h-10 px-2 select-all ${hasError ? 'border-rose-400' : ''} ${props.className}`;
+
 	return (
-		<div className={'flex flex-col w-full'}>
+		<div className={'flex flex-col w-full relative pb-6'}>
 			{label && (
 				<div className={'mb-1'}>
 					<span>{label}</span>
@@ -28,19 +33,19 @@ const PasswordField: NextPage<Props> = ({ label, name, required, ...props }) => 
 			)}
 			<div className='relative w-full'>
 				<Field
-					className={'h-10 w-full px-2 '}
+					className={className}
 					type={show ? 'text' : 'password'}
 					name={name}
 					{...props}
 				/>
-				<div className='absolute h-10 w-10 right-0 top-0 flex justify-center items-center hover:text-blue-500 select-none' onClick={(e) => handleChange(e)}>
+				<div className='absolute h-10 w-10 right-0 top-0 flex justify-center items-center hover:text-primary-500 select-none' onClick={(e) => handleChange(e)}>
 					{show ? <IoEyeOffOutline size={'1.2rem'} /> : <IoEyeOutline size={'1.2rem'} />}
 				</div>
 			</div>
 			<ErrorMessage name={name}>
 				{(msg) => {
 					return (
-						<div className={'text-rose-600 text-sm normal-case'}>{msg}</div>
+						<div className={'absolute bottom-0 text-rose-600 text-sm normal-case'}>{msg}</div>
 					);
 				}}
 			</ErrorMessage>

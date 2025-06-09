@@ -1,5 +1,5 @@
 import { NextPage } from 'next';
-import { FastField, ErrorMessage } from 'formik';
+import { FastField, ErrorMessage, useField } from 'formik';
 import React from 'react';
 import { IoClose } from 'react-icons/io5';
 
@@ -11,9 +11,14 @@ interface Props extends React.HTMLProps<HTMLInputElement> {
 
 const DateField: NextPage<Props> = ({ label, name, handleClear, ...props }) => {
 
+  const [, meta] = useField(name);
+  const hasError = meta.touched && meta.error;
+
+  const className = `w-full h-10 px-2 ${hasError ? 'border-rose-400' : ''} ${props.className}`;
+  
   return (
     <>
-      <div className=''>
+      <div className='relative pb-6'>
         {label && (
           <div className={'mb-1'}>
             <span>{label}</span>
@@ -22,7 +27,7 @@ const DateField: NextPage<Props> = ({ label, name, handleClear, ...props }) => {
         )}
         <div className='relative'>
           <FastField
-            className={'w-full h-10 px-2'}
+            className={className}
             type={'datetime-local'}
             name={name}
             {...props}
@@ -41,7 +46,7 @@ const DateField: NextPage<Props> = ({ label, name, handleClear, ...props }) => {
         <ErrorMessage name={name}>
           {(msg) => {
             return (
-              <div className={'text-rose-600 text-sm normal-case'}>{msg}</div>
+              <div className={'absolute bottom-0 text-rose-600 text-sm normal-case'}>{msg}</div>
             );
           }}
         </ErrorMessage>

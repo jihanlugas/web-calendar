@@ -10,7 +10,7 @@ interface Props extends React.HTMLProps<HTMLInputElement> {
 const CheckboxField: NextPage<Props> = ({ name, showError = true, field = false, ...props }) => {
 	const FieldComponent = field ? Field : FastField;
 	return (
-		<span className={'flex flex-col w-full pl-1'}>
+		<span className={'flex flex-col w-full pl-1 relative pb-6'}>
 			<span className='flex items-center'>
 				{props.label && (
 					<label className={'select-none py-2 flex items-center cursor-pointer'} >
@@ -28,7 +28,7 @@ const CheckboxField: NextPage<Props> = ({ name, showError = true, field = false,
 				<ErrorMessage name={name}>
 					{(msg) => {
 						return (
-							<div className={'text-rose-600 text-sm normal-case'}>{msg}</div>
+							<div className={'absolute bottom-0text-rose-600 text-sm normal-case'}>{msg}</div>
 						);
 					}}
 				</ErrorMessage>
