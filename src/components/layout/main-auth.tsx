@@ -5,9 +5,10 @@ import Sidebar from '@/components/layout/sidebar-user';
 import { Api } from '@/lib/api';
 import { useQuery } from '@tanstack/react-query';
 import { AiOutlineLoading } from 'react-icons/ai'
+import { LoginUser } from '@/types/auth';
 
 type Props = {
-  children: React.ReactNode
+  children: React.ReactElement<{ loginUser: LoginUser }>
 }
 
 const Loading: React.FC = () => {
@@ -22,8 +23,9 @@ const Loading: React.FC = () => {
 
 const MainAuth: React.FC<Props> = ({ children }) => {
   const [sidebar, setSidebar] = useState<boolean>(false);
+  const [loginUser, setLoginUser] = useState<LoginUser>(null);
 
-  const { data: loginUser, isLoading } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ['init'],
     queryFn: () => Api.get('/auth/init'),
   })
@@ -48,6 +50,10 @@ const MainAuth: React.FC<Props> = ({ children }) => {
     }
   };
 
+  useEffect(() => {
+    setLoginUser(data?.payload)
+  }, [data])
+
 
   return (
     <>
@@ -57,10 +63,10 @@ const MainAuth: React.FC<Props> = ({ children }) => {
       <main className={''}>
         {!isLoading && loginUser ? (
           <>
-            <Header sidebar={sidebar} setSidebar={setSidebar} />
+            <Header sidebar={sidebar} setSidebar={setSidebar} loginUser={loginUser} />
             <Sidebar sidebar={sidebar} onClickOverlay={onClickOverlay} />
             <div className={`block duration-300 ease-in-out pt-16 min-h-svh overflow-y-auto`}>
-              {children}
+              {React.isValidElement(children) ? React.cloneElement(children, { loginUser }) : children}
             </div>
           </>
         ) : (

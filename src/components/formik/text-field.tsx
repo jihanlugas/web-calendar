@@ -14,7 +14,14 @@ const TextField: NextPage<Props> = ({ name, type, field = false, ...props }) => 
 	const [, meta] = useField(name);
 	const hasError = meta.touched && meta.error;
 
-	const className = `w-full h-10 px-2 select-all ${hasError ? 'border-rose-400' : ''} ${props.className}`;
+	const className = [
+  'w-full',
+  'h-10',
+  'px-2',
+  'select-all',
+  hasError && '!border-rose-400',
+  props.className || ''
+].filter(Boolean).join(' ');
 
 	return (
 		<div className={'flex flex-col w-full relative pb-6'}>
@@ -25,10 +32,10 @@ const TextField: NextPage<Props> = ({ name, type, field = false, ...props }) => 
 				</div>
 			)}
 			<FieldComponent
-				className={className}
 				type={type}
 				name={name}
 				{...props}
+				className={className}
 			/>
 			<ErrorMessage name={name}>
 				{(msg) => {

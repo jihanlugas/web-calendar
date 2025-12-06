@@ -16,6 +16,7 @@ import notif from "@/utils/notif";
 import ModalDeleteVerify from "./modal-delete-verify";
 import moment from "moment";
 import { PageProduct, ProductView } from "@/types/product";
+import { EVENT_STATUS } from "@/utils/constant";
 
 type Props = {
   show: boolean;
@@ -35,37 +36,11 @@ const schema = Yup.object().shape({
 });
 
 const ModalEvent: NextPage<Props> = ({ show, onClickOverlay, newEvent, property, setItems }) => {
-
   const [newData, setNewData] = useState(true);
-  const [event, setEvent] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState("1");
-
-  const tabs = [
-    { id: "1", label: "Summary" },
-    { id: "2", label: "Product" },
-    { id: "3", label: "Edit" },
-  ];
 
   useEffect(() => {
     setNewData(newEvent && newEvent.id !== '' ? false : true);
   }, [newEvent]);
-
-  const { data: dataEvent, isLoading } = useQuery({
-    queryKey: ['event', newEvent?.id],
-    queryFn: () => Api.get('/event/' + newEvent?.id),
-  })
-
-  useEffect(() => {
-    if (dataEvent) {
-      if (dataEvent?.status) {
-        setEvent(dataEvent.payload)
-      } else {
-        setEvent(null)
-      }
-    } else {
-      setEvent(null)
-    }
-  }, [dataEvent])
 
   return (
     <Modal show={show} onClickOverlay={onClickOverlay} layout={'sm:max-w-2xl'}>
@@ -84,52 +59,99 @@ const ModalEvent: NextPage<Props> = ({ show, onClickOverlay, newEvent, property,
             setItems={setItems}
           />
         ) : (
-          <>
-            {isLoading ? (
-              <div>Loading</div>
-            ) : (
-              <>
-                <div className="flex space-x-2 border-b border-gray-300 -my-4">
-                  {tabs.map((tab) => (
-                    <button
-                      key={tab.id}
-                      onClick={() => setActiveTab(tab.id)}
-                      className={`px-4 py-2 font-medium transition-colors border-b-2 ${activeTab === tab.id
-                        ? "border-blue-500 text-blue-600"
-                        : "border-transparent text-gray-500 hover:text-blue-500"
-                        }`}
-                    >
-                      {tab.label}
-                    </button>
-                  ))}
-                </div>
-                <div className="mt-6 h-[70vh] overflow-y-auto">
-                  {activeTab === "1" && (
-                    <ModalEventSummary
-                      event={event}
-                      property={property}
-                    />
-                  )}
-                  {activeTab === "2" && (
-                    <ModalEventProduct
-                      event={event}
-                    />
-                  )}
-                  {activeTab === "3" && (
-                    <ModalEventForm
-                      onClickOverlay={onClickOverlay}
-                      event={event}
-                      propertygroups={property.propertygroups}
-                      setItems={setItems}
-                    />
-                  )}
-                </div>
-              </>
-            )}
-          </>
+          <ModalEventTab
+            show={show}
+            onClickOverlay={onClickOverlay}
+            newEvent={newEvent}
+            property={property}
+            setItems={setItems}
+          />
         )}
       </div>
     </Modal>
+  )
+}
+
+const ModalEventTab = ({ show, onClickOverlay, newEvent, property, setItems }) => {
+
+  const [event, setEvent] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState("1");
+
+  const tabs = [
+    { id: "1", label: "Summary" },
+    { id: "2", label: "Product" },
+    { id: "3", label: "Edit" },
+  ];
+
+  const { data: dataEvent, isLoading } = useQuery({
+    queryKey: ['event', newEvent?.id],
+    queryFn: () => newEvent?.id && Api.get('/event/' + newEvent?.id),
+  })
+
+  useEffect(() => {
+    if (dataEvent) {
+      if (dataEvent?.status) {
+        setEvent(dataEvent.payload)
+      } else {
+        setEvent(null)
+      }
+    } else {
+      setEvent(null)
+    }
+  }, [dataEvent])
+
+  useEffect(() => {
+    if (!show) {
+      setActiveTab("1")
+    }
+  }, [show])
+
+  if (!show) return null
+
+  return (
+    <>
+      {isLoading ? (
+        <div>Loading</div>
+      ) : (
+        <>
+          <div className="flex space-x-2 border-b border-gray-300 -my-4">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`px-4 py-2 font-medium transition-colors border-b-2 ${activeTab === tab.id
+                  ? "border-blue-500 text-blue-600"
+                  : "border-transparent text-gray-500 hover:text-blue-500"
+                  }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+          <div className="mt-6 h-[70vh] overflow-y-auto">
+            {activeTab === "1" && (
+              <ModalEventSummary
+                event={event}
+                property={property}
+              />
+            )}
+            {activeTab === "2" && (
+              <ModalEventProduct
+                event={event}
+              />
+            )}
+            {activeTab === "3" && (
+              <ModalEventForm
+                onClickOverlay={onClickOverlay}
+                event={event}
+                propertygroups={property.propertygroups}
+                setItems={setItems}
+              />
+            )}
+          </div>
+        </>
+      )}
+    </>
   )
 }
 
@@ -276,8 +298,8 @@ const ModalEventForm = ({ onClickOverlay, event, propertygroups, setItems }) => 
   });
 
   const { mutate: mutateUpdate, isPending: isPendingUpdate } = useMutation({
-    mutationKey: ['event', event.id, 'update'],
-    mutationFn: (val: FormikValues) => Api.put('/event/' + event.id, val),
+    mutationKey: ['event', event?.id, 'update'],
+    mutationFn: (val: FormikValues) => Api.put('/event/' + event?.id, val),
   });
 
   const { mutate: mutateDelete, isPending: isPendingDelete } = useMutation({
@@ -417,6 +439,18 @@ const ModalEventForm = ({ onClickOverlay, event, propertygroups, setItems }) => 
                     keyValue={"id"}
                     keyLabel={"name"}
                     placeholder="Select Property Group"
+                    placeholderValue={""}
+                    required
+                  />
+                </div>
+                <div className="">
+                  <DropdownField
+                    label={"Status"}
+                    name={"status"}
+                    items={EVENT_STATUS}
+                    keyValue={"value"}
+                    keyLabel={"label"}
+                    placeholder="Select Status"
                     placeholderValue={""}
                     required
                   />

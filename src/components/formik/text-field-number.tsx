@@ -13,14 +13,22 @@ const TextFieldNumber: NextPage<Props> = ({ name, ...props }) => {
 
 	const hasError = meta.touched && meta.error;
 
-	const className = `w-full h-10 px-2 select-all ${hasError ? 'border-rose-400' : ''} ${props.className}`;
+	const className = [
+  'w-full',
+  'h-10',
+  'px-2',
+  'select-all',
+  'text-right',
+  hasError && '!border-rose-400',
+  props.className || ''
+].filter(Boolean).join(' ');
 
 	const formatNumber = (value) => {
 		return value === '' ? value : new Intl.NumberFormat('id-ID').format(value);
 	};
 
 	const handleChange = (e) => {
-		const rawValue = isNaN(parseInt(e.target.value.replace(/\D/g, ''))) ? '' : parseInt(e.target.value.replace(/\D/g, ''));
+		const rawValue = isNaN(parseInt(e.target.value.replace(/[^\d-]/g, ''))) ? '' : parseInt(e.target.value.replace(/[^\d-]/g, ''));
 		helpers.setValue(rawValue);
 		props.onChange?.(e);
 	};
@@ -38,12 +46,12 @@ const TextFieldNumber: NextPage<Props> = ({ name, ...props }) => {
 				</div>
 			)}
 			<input
-				className={className}
 				type="text"
 				{...field}
 				{...props}
 				value={displayValue}
 				onChange={handleChange}
+				className={className}
 			/>
 			<ErrorMessage name={name}>
 				{(msg) => {

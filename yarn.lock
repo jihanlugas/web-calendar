@@ -1113,6 +1113,11 @@ data-view-byte-offset@^1.0.1:
     es-errors "^1.3.0"
     is-data-view "^1.0.1"
 
+dayjs@^1.11.19:
+  version "1.11.19"
+  resolved "https://registry.yarnpkg.com/dayjs/-/dayjs-1.11.19.tgz#15dc98e854bb43917f12021806af897c58ae2938"
+  integrity sha512-t5EcLVS6QPBNqM2z8fakk/NKel+Xzshgt8FFKAn+qwlD1pzZWxh0nVCrvFK7ZDb6XucZeF9z8C7CBWTRIVApAw==
+
 debug@^3.2.7:
   version "3.2.7"
   resolved "https://registry.yarnpkg.com/debug/-/debug-3.2.7.tgz#72580b7e9145fb39b6676f9c5e5fb100b934179a"
@@ -2643,10 +2648,10 @@ queue-microtask@^1.2.2:
   resolved "https://registry.yarnpkg.com/queue-microtask/-/queue-microtask-1.2.3.tgz#4929228bbc724dfac43e0efb058caf7b6cfb6243"
   integrity sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==
 
-react-calendar-timeline@^0.30.0-beta.3:
-  version "0.30.0-beta.3"
-  resolved "https://registry.yarnpkg.com/react-calendar-timeline/-/react-calendar-timeline-0.30.0-beta.3.tgz#4385f2af69c9cd1b0896620cad605707af8f40f4"
-  integrity sha512-TckfoAzJvK5FEQo83vejbVtSDX1XNxcFmfCq92lMZKQiEuzbk7adcQi+ySlL9uSZ1ulFZS6YMAS6rzEGsVtZ2A==
+react-calendar-timeline@^0.30.0-beta.4:
+  version "0.30.0-beta.4"
+  resolved "https://registry.yarnpkg.com/react-calendar-timeline/-/react-calendar-timeline-0.30.0-beta.4.tgz#84eb097666170778854166f6684727a02e199c71"
+  integrity sha512-N58m+0jAt0pACe7cJghceNLjBzqoDmJ4QvJrPsDWRBdIrf6VE4u59r2U9J2DclZdWY404O+9rcTBAuGy3Q4U0A==
   dependencies:
     classnames "^2.5.1"
     element-resize-detector "^1.2.4"

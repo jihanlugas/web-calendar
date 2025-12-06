@@ -1,29 +1,33 @@
 import PageWithLayoutType from '@/types/layout';
 import Head from 'next/head';
 import MainAuth from '@/components/layout/main-auth';
-import Breadcrumb from '@/components/breadcrumb';
+import Breadcrumb from '@/components/component/breadcrumb';
 import { useEffect, useState } from 'react';
 import { PropertyView } from '@/types/property';
 import moment from 'moment';
 import Timeline from '@/components/timeline';
-import { useQuery } from '@tanstack/react-query';
-import { Api } from '@/lib/api';
-import ModalEvent from '@/components/modal/modal-event';
+import ModalEventNew from '@/components/modal/modal-event-new';
 import { BiPlus } from 'react-icons/bi';
+import { NextPage } from 'next/types';
+import { LoginUser } from '@/types/auth';
+import { Api } from '@/lib/api';
+import { useMutation } from '@tanstack/react-query';
+import { EventNew, EventView } from '@/types/event';
+import notif from '@/utils/notif';
+import useWebSocket from '@/utils/hook';
+import { EVENT_STATUS_CONFIRM } from '@/utils/constant';
+import ModalEventSummary from '@/components/modal/modal-event-summary';
 
-const Index = () => {
+type Props = {
+  loginUser: LoginUser
+}
+
+const Index: NextPage<Props> = ({ loginUser }) => {
   const [properties, setProperties] = useState<PropertyView[]>([]);
 
 
-  const { data: loginUser } = useQuery({
-    queryKey: ['init'],
-    queryFn: () => Api.get('/auth/init'),
-  })
-
   useEffect(() => {
-    if (loginUser?.status) {
-      setProperties(loginUser?.payload?.user?.company.properties || [])
-    }
+    setProperties(loginUser?.user?.company.properties || [])
   }, [loginUser])
 
   return (
@@ -50,24 +54,46 @@ const Index = () => {
   );
 };
 
-const SingleTimeline = ({ property }) => {
+type SingleTimelineProps = {
+  property: PropertyView
+}
+
+const defaultEvent: EventNew = {
+  companyId: '',
+  name: '',
+  description: '',
+  propertyId: '',
+  propertygroupId: '',
+  startDt: new Date(),
+  endDt: new Date(),
+  status: EVENT_STATUS_CONFIRM,
+}
+
+const SingleTimeline: NextPage<SingleTimelineProps> = ({ property }) => {
   const [selectedItem, setSelectedItem] = useState<string | null>(null);
-  const [items, setItems] = useState([]);
-  const [showModalEvent, setShowModalEvent] = useState<boolean>(false);
-  const [newEvent, setNewEvent] = useState(null);
+  const [items, setItems] = useState<EventView[]>([]);
+  const [showModalEventNew, setShowModalEventNew] = useState<boolean>(false);
+  const [showModalEventSummary, setShowModalEventSummary] = useState<boolean>(false);
+  const [eventNew, setEventNew] = useState<EventNew>(defaultEvent);
+  const [event, setEvent] = useState<EventView>(null);
+  const [dorefetch, setDorefetch] = useState(0);
 
   const [pageRequest, setPageRequest] = useState({
     companyId: property.companyId,
     propertyId: property.id,
-    startDt: moment().add(-1 * property.propertytimeline.defaultStartDtValue * 2, property.propertytimeline.defaultStartDtUnit).toISOString(), // *2 agar dapat data lebih banyak, karena onBoundsChange juga get data lebih jauh
-    endDt: moment().add(property.propertytimeline.defaultEndDtValue * 2, property.propertytimeline.defaultEndDtUnit).toISOString(), // *2 agar dapat data lebih banyak, karena onBoundsChange juga get data lebih jauh
+    startDt: moment().add(-1 * property.propertytimeline.defaultStartDtValue * 2, property.propertytimeline.defaultStartDtUnit as moment.unitOfTime.DurationConstructor).toISOString(), // *2 agar dapat data lebih banyak, karena onBoundsChange juga get data lebih jauh
+    endDt: moment().add(property.propertytimeline.defaultEndDtValue * 2, property.propertytimeline.defaultEndDtUnit as moment.unitOfTime.DurationConstructor).toISOString(), // *2 agar dapat data lebih banyak, karena onBoundsChange juga get data lebih jauh
     preloads: "",
   });
 
+  // const { isLoading, data, refetch } = useQuery({
+  //   queryKey: ['event', 'timeline', pageRequest],
+  //   queryFn: ({ queryKey }) => Api.get('/event/timeline', queryKey[2] as object),
+  // });
 
-  const { isLoading, data, refetch } = useQuery({
-    queryKey: ['event', 'timeline', pageRequest],
-    queryFn: ({ queryKey }) => Api.get('/event/timeline', queryKey[2] as object),
+  const { mutate: mutateUpdate } = useMutation({
+    mutationKey: ['event', 'update'],
+    mutationFn: (val: EventView) => Api.put('/event/' + val?.id, val),
   });
 
 
@@ -77,17 +103,16 @@ const SingleTimeline = ({ property }) => {
       startDt: moment(canvasTimeStart).toISOString(),
       endDt: moment(canvasTimeEnd).toISOString(),
     })
-    console.log('onBoundsChange')
-    console.log('canvasTimeStart', new Date(canvasTimeStart))
-    console.log('canvasTimeEnd', new Date(canvasTimeEnd))
   }
+
+  const url = process.env.WS_END_POINT + '/ws?propertyId=' + property.id;
+  const { isConnected, messages, connect, sendMessage } = useWebSocket({ url, autoReconnect: true });
 
   const onCanvasDoubleClick = (groupId, time, e) => {
     const startDt = new Date(time)
     const endDt = new Date(time)
 
-    setNewEvent({
-      id: '',
+    setEventNew({
       companyId: property.companyId,
       name: '',
       description: '',
@@ -95,17 +120,17 @@ const SingleTimeline = ({ property }) => {
       propertygroupId: groupId,
       startDt: new Date(startDt.setHours(startDt.getHours(), 0, 0, 0)),
       endDt: new Date(endDt.setHours(endDt.getHours() + 1, 0, 0, 0)),
+      status: EVENT_STATUS_CONFIRM,
     })
 
-    toggleModalEvent()
+    toggleModalEventNew()
   }
 
   const handleClickNewEvent = () => {
     const startDt = new Date()
     const endDt = new Date()
 
-    setNewEvent({
-      id: '',
+    setEventNew({
       companyId: property.companyId,
       name: '',
       description: '',
@@ -113,64 +138,107 @@ const SingleTimeline = ({ property }) => {
       propertygroupId: "",
       startDt: new Date(startDt.setHours(startDt.getHours() + 1, 0, 0, 0)),
       endDt: new Date(endDt.setHours(endDt.getHours() + 2, 0, 0, 0)),
+      status: EVENT_STATUS_CONFIRM,
     })
 
-    toggleModalEvent()
+    toggleModalEventNew()
   }
 
-  const onItemClick = (itemId) => {
-    setNewEvent(items.find(item => item.id === itemId))
-    toggleModalEvent()
+  const onItemClick = (itemId, e) => {
+    // e.currentTarget.blur()
+    setEvent(items.find(item => item.id === itemId))
+    toggleModalEventSummary()
+
+    setSelectedItem(null)
   }
 
-  const onItemMove = (itemId, dragTime, propertyId) => {
-    console.log('onItemMove')
-    console.log('itemId ', itemId)
-    console.log('dragTime ', new Date(dragTime))
-    console.log('propertyId ', propertyId)
-
+  const onItemMove = (itemId, dragTime, newGroupOrder) => {
     setItems(items.map(item => {
       if (item.id === itemId) {
 
         const duration = moment.duration(moment(item.endDt).diff(moment(item.startDt)));
+        item.startDt = moment(dragTime)
+        item.endDt = moment(dragTime).add(duration)
+        item.propertygroupId = property.propertygroups[newGroupOrder].id
+
+        mutateUpdate(item, {
+          onSuccess: ({ status, message }) => {
+            if (status) {
+              notif.success(message);
+            } else {
+              notif.error(message);
+            }
+          },
+          onError: () => {
+            notif.error('Please cek you connection');
+          }
+        })
         return {
           ...item,
-          startDt: moment(dragTime),
-          endDt: moment(dragTime).add(duration),
         }
       }
       return item
     }))
+
+    setSelectedItem(null)
   }
 
-  const toggleModalEvent = (refresh = false) => {
-    if (refresh) {
-      refetch()
-      setSelectedItem(null)
-    }
-    setShowModalEvent(!showModalEvent);
+  const toggleModalEventNew = () => {
+    setShowModalEventNew(!showModalEventNew);
+  }
+
+  const toggleModalEventSummary = () => {
+    setShowModalEventSummary(!showModalEventSummary);
   }
 
   useEffect(() => {
-    if (data?.status) {
-      const newData = data.payload.map((v) => {
-        return {
-          ...v,
-          startDt: moment(v.startDt),
-          endDt: moment(v.endDt),
-        }
+    if (isConnected) {
+      sendMessage({
+        type: 'GET_EVENT',
+        payload: pageRequest,
       })
-      setItems(newData);
     }
-  }, [data]);
+  }, [isConnected, pageRequest, sendMessage, dorefetch])
+
+  useEffect(() => {
+    connect()
+  }, [])
+
+  useEffect(() => {
+    if (messages && messages.length > 0) {
+      const message = messages.at(-1)
+      switch (message.type) {
+        case "DATA_EVENT":
+          const newData = message.payload.map((v) => {
+            return {
+              ...v,
+              startDt: moment(v.startDt),
+              endDt: moment(v.endDt),
+            }
+          })
+          setItems(newData);
+          break;
+        case "REFETCH":
+          setDorefetch(dorefetch + 1)
+          break;
+        default:
+          break;
+      }
+    }
+  }, [messages])
 
   return (
     <>
-      <ModalEvent
-        show={showModalEvent}
-        onClickOverlay={toggleModalEvent}
-        newEvent={newEvent}
-        setItems={setItems}
+      <ModalEventNew
+        show={showModalEventNew}
+        onClickOverlay={toggleModalEventNew}
+        eventNew={eventNew}
+        property={property}
+      />
+      <ModalEventSummary
+        show={showModalEventSummary}
+        onClickOverlay={toggleModalEventSummary}
+        event={event}
         property={property}
       />
       <div className='bg-white mb-4 p-4 rounded shadow'>
@@ -181,10 +249,11 @@ const SingleTimeline = ({ property }) => {
           </button>
         </div>
         <Timeline
-          isLoading={isLoading}
+          isConnected={isConnected}
+          connect={connect}
           propertyName={property.name}
-          defaultTimeStart={moment().add(-1 * property.propertytimeline.defaultStartDtValue, property.propertytimeline.defaultStartDtUnit).valueOf()}
-          defaultTimeEnd={moment().add(property.propertytimeline.defaultEndDtValue, property.propertytimeline.defaultEndDtUnit).valueOf()}
+          defaultTimeStart={moment().add(-1 * property.propertytimeline.defaultStartDtValue, property.propertytimeline.defaultStartDtUnit as moment.unitOfTime.DurationConstructor).valueOf()}
+          defaultTimeEnd={moment().add(property.propertytimeline.defaultEndDtValue, property.propertytimeline.defaultEndDtUnit as moment.unitOfTime.DurationConstructor).valueOf()}
           minZoom={1000 * 60 * 60 * property.propertytimeline.minZoomTimelineHour}
           maxZoom={1000 * 60 * 60 * property.propertytimeline.maxZoomTimelineHour}
           dragSnap={1000 * 60 * property.propertytimeline.dragSnapMin}
@@ -192,11 +261,15 @@ const SingleTimeline = ({ property }) => {
           items={items}
           onBoundsChange={onBoundsChange}
           onCanvasDoubleClick={onCanvasDoubleClick}
-          onItemSelect={(itemId) => setSelectedItem(itemId as string)}
+          onItemSelect={(itemId) => { setSelectedItem(itemId as string) }}
           onItemClick={onItemClick}
           onItemMove={onItemMove}
           selected={selectedItem ? [selectedItem] : []}
+          onItemDeselect={() => setSelectedItem(null)}
           onCanvasClick={() => setSelectedItem(null)}
+          canResize={false}
+          // itemTouchSendsClick={true}
+          // touchEnabled={true}
         />
       </div>
     </>

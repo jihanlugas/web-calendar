@@ -1,14 +1,15 @@
-import Breadcrumb from "@/components/breadcrumb";
+import Breadcrumb from '@/components/component/breadcrumb';;
 import ButtonSubmit from "@/components/formik/button-submit";
 import TextAreaField from "@/components/formik/text-area-field";
 import TextField from "@/components/formik/text-field";
 import TextFieldNumber from "@/components/formik/text-field-number";
 import MainAuth from "@/components/layout/main-auth";
 import { Api } from "@/lib/api";
+import { LoginUser } from "@/types/auth";
 import PageWithLayoutType from "@/types/layout";
 import { CreateProperty } from "@/types/property";
 import notif from "@/utils/notif";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { FieldArray, Form, Formik, FormikHelpers, FormikValues } from "formik";
 import Head from "next/head";
 import { useRouter } from "next/router";
@@ -17,8 +18,9 @@ import { BiPlus } from "react-icons/bi";
 import { IoClose } from "react-icons/io5";
 import * as Yup from 'yup';
 
-
-type Props = object
+type Props = {
+  loginUser: LoginUser
+}
 
 const schemaPropertygroup = Yup.object().shape({
   name: Yup.string().required('Required field'),
@@ -49,14 +51,9 @@ const initFormikValue: CreateProperty = {
 }
 
 
-const New: NextPage<Props> = () => {
+const New: NextPage<Props> = ( {loginUser} ) => {
 
   const router = useRouter();
-
-  const { data: loginUser } = useQuery({
-    queryKey: ['init'],
-    queryFn: () => Api.get('/auth/init'),
-  })
 
   const { mutate: mutateSubmit, isPending } = useMutation({
     mutationKey: ['property', 'create'],
@@ -64,7 +61,7 @@ const New: NextPage<Props> = () => {
   });
 
   const handleSubmit = async (values: CreateProperty, formikHelpers: FormikHelpers<CreateProperty>) => {
-    values.companyId = loginUser?.payload?.user?.company?.id
+    values.companyId = loginUser.user.company.id
 
     mutateSubmit(values, {
       onSuccess: ({ status, message, payload }) => {
@@ -140,7 +137,7 @@ const New: NextPage<Props> = () => {
                     </div>
                     <div className="mb-4">
                       <FieldArray name="propertygroups">
-                        {({ insert, remove, push }) => {
+                        {({ remove, push }) => {
                           return (
                             <div>
                               <div className="flex justify-between items-center">

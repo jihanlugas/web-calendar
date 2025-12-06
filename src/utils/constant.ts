@@ -30,3 +30,19 @@ export const GENDER = {
     label: 'Female',
   },
 };
+
+
+
+export const EVENT_STATUS_HOLD = 'HOLD';
+export const EVENT_STATUS_CONFIRM = 'CONFIRM';
+
+export const EVENT_STATUS = [
+  {
+    value: EVENT_STATUS_HOLD,
+    label: 'Hold',
+  },
+  {
+    value: EVENT_STATUS_CONFIRM,
+    label: 'Confirm',
+  },
+]

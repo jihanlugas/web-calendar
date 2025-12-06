@@ -11,7 +11,10 @@ import {
   DateHeader,
   TimelineKeys,
 } from 'react-calendar-timeline';
-import { ImSpinner2 } from 'react-icons/im';
+import { EVENT_STATUS_CONFIRM, EVENT_STATUS_HOLD } from '@/utils/constant';
+import { IoCloseSharp } from 'react-icons/io5';
+import { Tooltip } from 'react-tooltip';
+import { displayMoney, displayTIme } from '@/utils/formater';
 
 const keys: TimelineKeys = {
   groupIdKey: 'id',
@@ -41,7 +44,8 @@ interface TimelineProps
     'defaultTimeStart' | 'defaultTimeEnd' | 'sidebarWidth' | 'lineHeight' | 'minZoom' | 'maxZoom' | 'stackItems' | 'rightSidebarWidth' | 'itemHeightRatio' | 'timeSteps' | 'keys' | 'items' | 'groups'
   > {
   // Optionally override defaultTimeStart/end
-  isLoading?: boolean;
+  isConnected?: boolean;
+  connect?: () => void;
   propertyName: string;
   defaultTimeStart?: number;
   defaultTimeEnd?: number;
@@ -67,7 +71,8 @@ const TimelineLib = dynamic(
 );
 
 export default function Timeline({
-  isLoading = false,
+  isConnected = false,
+  connect,
   propertyName,
   defaultTimeStart = moment().add(-12, 'hour').valueOf(),
   defaultTimeEnd = moment().add(12, 'hour').valueOf(),
@@ -83,31 +88,95 @@ export default function Timeline({
   const ItemRenderer = ({ item, itemContext, getItemProps, getResizeProps }) => {
 
     const { left: leftResizeProps, right: rightResizeProps } = getResizeProps()
-    const itemprops = getItemProps(item.itemProps)
+    const itemprops = getItemProps({
+      title: undefined,
+      ...item.itemProps,
+    })
 
-    const itemClass = 'rct-item rounded !font-bold !text-gray-50 !bg-green-500 border !border-green-600'
-    const selectedItemClass = 'rct-item rounded !font-bold !text-gray-50 !bg-amber-500 border !border-amber-600'
+    let itemClass = ''
+    const selectedItemClass = 'rct-item rounded !font-bold !text-gray-100 !bg-amber-500 border !border-amber-500'
+
+    switch (item.status) {
+      case EVENT_STATUS_HOLD:
+        itemClass = 'rct-item rounded !font-bold !text-gray-100 !bg-gray-500 border !border-gray-500'
+        break;
+      case EVENT_STATUS_CONFIRM:
+        itemClass = 'rct-item rounded !font-bold !text-gray-100 !bg-blue-500 border !border-blue-500'
+        break;
+      default:
+        break;
+    }
 
     return (
-      <div
-        {...itemprops}
-        key={itemprops.key}
-        className={itemContext.selected ? selectedItemClass : itemClass}
-
-      >
-        {itemContext.useResizeHandle ? <div {...leftResizeProps} /> : ''}
-
+      <>
         <div
-          className="rct-item-content"
-          style={{ maxHeight: `${itemContext.dimensions.height}` }}
+          {...itemprops}
+          key={itemprops.key}
+          className={itemContext.selected ? selectedItemClass : itemClass}
+          data-tooltip-id={`tootltip-item-${item.id}`}
+          data-tooltip-delay-show={300}
+          data-tooltip-delay-hide={200}
+          title='' // set title empty to remove default tooltip and use custom tooltip
         >
-          {itemContext.title}
+          {itemContext.useResizeHandle ? <div {...leftResizeProps} /> : ''}
+          <div
+            className="rct-item-content"
+            style={{ maxHeight: `${itemContext.dimensions.height}` }}
+          >
+            {itemContext.title}
+          </div>
+          {itemContext.useResizeHandle ? <div {...rightResizeProps} /> : ''}
         </div>
+        <Tooltip id={`tootltip-item-${item.id}`} style={{ zIndex: 999 }}>
+          <div className='text-xs'>
+            <div className='mb-2'>
+              <div className="font-bold">{item.name}</div>
+              <div className="whitespace-pre-line">{item.description}</div>
+            </div>
+            <div>
+              <div className='flex justify-between'>
+                <div>Time</div>
+                <div>{displayTIme(item.startDt) + ' - ' + displayTIme(item.endDt)}</div>
+              </div>
+              <div className='flex justify-between'>
+                <div>Status</div>
+                <div className='' >{item.status}</div>
+              </div>
+              <div className='flex justify-between'>
+                <div>Price</div>
+                <div>{displayMoney(item.price)}</div>
+              </div>
+              <div className='flex justify-between mt-2'>
+                <div></div>
+                <div className='font-bold' >{"PAID"}</div>
+              </div>
+            </div>
+          </div>
+        </Tooltip>
+      </>
 
-        {itemContext.useResizeHandle ? <div {...rightResizeProps} /> : ''}
-      </div>
     )
   }
+
+  const GroupRenderer = ({ group }) => {
+    return (
+      <div className="flex items-center px-2">
+        <span className="font-semibold">{group.name}</span>
+      </div>
+    );
+  };
+
+  const handleConnect = () => {
+    if (connect) {
+      connect()
+    }
+  }
+
+  // useEffect(() => {
+  //   if (!isConnected) {
+  //     connect()
+  //   }
+  // }, [isConnected, connect])
 
   return (
     <TimelineLib
@@ -124,6 +193,8 @@ export default function Timeline({
       dragSnap={dragSnap}
       timeSteps={undefined}
       itemRenderer={ItemRenderer}
+      itemVerticalGap={8}
+      groupRenderer={GroupRenderer}
       {...rest}
     >
       <TimelineMarkers>
@@ -133,15 +204,23 @@ export default function Timeline({
         <SidebarHeader>
           {({ getRootProps }) => {
             return (
-              <div {...getRootProps()} className='relative flex justify-start items-center text-xl text-gray-50 px-2 font-bold'>
+              <div {...getRootProps()} className='relative flex justify-center items-center text-xl text-gray-50 px-2 font-bold'>
                 <div>{propertyName}</div>
-                <ImSpinner2 className={`absolute right-4 animate-spin ${!isLoading && ' hidden'}`} size={'1.2em'} />
+                <IoCloseSharp title='Disconnect, Click to reconnect' onClick={handleConnect} className={`absolute text-rose-500 right-4 ${isConnected && ' hidden'}`} size={'1.2em'} />
               </div>
             )
           }}
         </SidebarHeader>
-        <DateHeader unit="primaryHeader" />
-        <DateHeader />
+        <DateHeader
+          unit='day'
+          labelFormat={(range, unit) => range[0].format("DD MMMM YYYY")}
+          className='font-bold !h-8'
+        />
+        <DateHeader
+          unit="hour"
+          labelFormat={(range, unit) => range[0].format("HH")}
+          className='font-bold !h-8'
+        />
       </TimelineHeaders>
     </TimelineLib>
   );

@@ -12,7 +12,7 @@ const Breadcrumb: NextPage<Props> = ({ links }) => {
   if (links.length === 0) {
     return null
   }
-
+  
   return (
     <div className='bg-white mb-4 p-4 rounded shadow'>
       <div className='text-xl flex items-center'>

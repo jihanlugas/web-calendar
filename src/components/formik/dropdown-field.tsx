@@ -1,4 +1,4 @@
-import { Field, FastField,  ErrorMessage, useField } from 'formik';
+import { Field, FastField, ErrorMessage, useField } from 'formik';
 import { NextPage } from 'next';
 import React from 'react';
 import { ImSpinner2 } from 'react-icons/im';
@@ -25,12 +25,19 @@ interface Props extends React.HTMLProps<HTMLSelectElement> {
 const DropdownField: NextPage<Props> = ({ label, name, items, required, placeholder = '', placeholderValue = '', keyValue = 'value', keyLabel = 'label', isLoading = false, field = false, ...props }) => {
 	const FieldComponent = field ? Field : FastField;
 
-	
-		const [, meta] = useField(name);
-		const hasError = meta.touched && meta.error;
-	
-		const className = `w-full h-10 px-2 ${hasError ? 'border-rose-400' : ''} ${props.className}`;
-		
+
+	const [, meta] = useField(name);
+	const hasError = meta.touched && meta.error;
+
+	const className = [
+		'w-full',
+		'h-10',
+		'px-2',
+		'select-all',
+		hasError && '!border-rose-400',
+		props.className || ''
+	].filter(Boolean).join(' ');
+
 	return (
 		<div className={'flex flex-col w-full relative pb-6'}>
 			{label && (
@@ -41,10 +48,10 @@ const DropdownField: NextPage<Props> = ({ label, name, items, required, placehol
 			)}
 			<div className='relative'>
 				<FieldComponent
-					className={className}
 					name={name}
 					as={'select'}
 					{...props}
+					className={className}
 				>
 					{placeholder !== '' && (
 						<option value={placeholderValue}>{placeholder}</option>
@@ -55,7 +62,7 @@ const DropdownField: NextPage<Props> = ({ label, name, items, required, placehol
 						)
 					})}
 				</FieldComponent>
-				{isLoading && <ImSpinner2 className={'animate-spin absolute top-3 right-8'} size={'1.2rem'} />}
+				{isLoading && <ImSpinner2 className={'animate-spin absolute top-3 right-8 text-blue-500'} size={'1.2rem'} />}
 			</div>
 			<ErrorMessage name={name}>
 				{(msg) => {

@@ -1,7 +1,7 @@
 import { ErrorMessage, useField } from 'formik';
 import { NextPage } from 'next';
 import Image from '@/components/component/image';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { IoAddOutline } from 'react-icons/io5';
 
 interface Props {
@@ -13,8 +13,8 @@ interface Props {
 
 const ImageField: NextPage<Props & React.HTMLProps<HTMLInputElement>> = ({ label, name, required, photoUrl = '', ...props }) => {
   const [previewImage, setPreviewImage] = useState<string>(photoUrl);
-  // const [field, meta, helpers] = useField({ name, ...props });
-  const helpers = useField({ name, ...props })[2];
+  const [field, meta, helpers] = useField({ name, ...props });
+  // const helpers = useField({ name, ...props })[2];
   const handleChange = (event) => {
     if (event.currentTarget.files[0] !== undefined) {
       helpers.setTouched(true);
@@ -29,6 +29,12 @@ const ImageField: NextPage<Props & React.HTMLProps<HTMLInputElement>> = ({ label
   };
 
   const inputField = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (field.value === null) {
+      setPreviewImage('');
+    }
+  }, [field.value]);
 
   return (
     <div className={'flex flex-col w-full relative pb-6'}>
@@ -48,11 +54,11 @@ const ImageField: NextPage<Props & React.HTMLProps<HTMLInputElement>> = ({ label
       />
       <button className='w-36' onClick={handleClickImage}>
         {previewImage !== '' ? (
-          <div className='relative w-36 border-2 rounded bg-gray-50'>
+          <div className='relative w-36 border-2 rounded border-gray-200 bg-gray-50'>
             <Image src={previewImage} alt={'Preview Image'} />
           </div>
         ) : (
-          <div className='relative w-36 h-36 border-2 rounded bg-gray-50 flex justify-center items-center'>
+          <div className='relative w-36 h-36 border-2 rounded border-gray-200 bg-gray-50 flex justify-center items-center'>
             <IoAddOutline className='' size={'2.5rem'} />
           </div>
         )}

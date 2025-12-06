@@ -1,39 +1,32 @@
 import { Api } from '@/lib/api';
 import React, { useState, useEffect, useRef } from 'react';
 import { BsList } from 'react-icons/bs';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
 import { getInitialWord } from '@/utils/helper';
 import Image from 'next/image';
 import Notif from '@/utils/notif';
 import Link from 'next/link';
+import { LoginUser } from '@/types/auth';
 
 interface Props {
   sidebar: boolean,
   setSidebar: (sidebar: boolean) => void,
+  loginUser: LoginUser
 }
 
-const Header: React.FC<Props> = ({ sidebar, setSidebar }) => {
+const Header: React.FC<Props> = ({ sidebar, setSidebar, loginUser }) => {
 
   const refProfile = useRef<HTMLDivElement>(null);
   const [profileBar, setProfileBar] = useState(false);
-  // const { login, setLogin } = useContext(LoginContext);
-  const [user, setUser] = useState(null);
-
 
 
   const router = useRouter();
-
 
   const { mutate } = useMutation({
     mutationKey: ['sign-out'],
     mutationFn: () => Api.get('/auth/sign-out')
   });
-
-  const { data: loginUser } = useQuery({
-    queryKey: ['init'],
-    queryFn: () => Api.get('/auth/init'),
-  })
 
   const handleLogout = () => {
     mutate(null, {
@@ -65,10 +58,6 @@ const Header: React.FC<Props> = ({ sidebar, setSidebar }) => {
     };
   }, [profileBar]);
 
-  useEffect(() => {
-    setUser(loginUser.payload.user)
-  }, [loginUser])
-
   return (
     <header>
       <div className="fixed h-16 w-full flex justify-between items-center shadow bg-primary-500 z-40">
@@ -80,17 +69,17 @@ const Header: React.FC<Props> = ({ sidebar, setSidebar }) => {
             <span className=''>{process.env.APP_NAME}</span>
           </div>
         </div>
-        {user && (
+        {loginUser?.user && (
           <div className="relative inline-block text-left p-2" ref={refProfile}>
             <div className="flex items-center">
-              <div className="hidden md:block mx-2 text-white">{user.fullname}</div>
-              {user.photoUrl !== '' ? (
+              <div className="hidden md:block mx-2 text-white">{loginUser.user.fullname}</div>
+              {loginUser.user.photoUrl !== '' ? (
                 <button className="relative overflow-hidden mx-2 h-10 w-10 rounded-full" onClick={() => setProfileBar(!profileBar)}>
-                  <Image src={user.photoUrl} alt={user.fullname} layout={'fill'} />
+                  <Image src={loginUser.user.photoUrl} alt={loginUser.user.fullname} layout={'fill'} />
                 </button>
               ) : (
                 <button className="mx-2 h-10 w-10 bg-gray-700 rounded-full text-gray-100 flex justify-center items-center text-xl" onClick={() => setProfileBar(!profileBar)}>
-                  {getInitialWord(user.fullname)}
+                  {getInitialWord(loginUser.user.fullname)}
                 </button>
               )}
             </div>

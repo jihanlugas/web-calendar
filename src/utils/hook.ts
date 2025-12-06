@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 
 export function useDebounce(value, delay) {
   // State and setters for debounced value
@@ -30,4 +30,84 @@ export function useDebounce(value, delay) {
   );
 
   return debouncedValue;
+}
+
+export default function useWebSocket({ url, autoReconnect = true }) {
+  const wsRef = useRef(null);
+  const reconnectRef = useRef(null);
+  const [isConnected, setIsConnected] = useState(false);
+  const [messages, setMessages] = useState([]);
+
+  const connect = useCallback(() => {
+    if (!url) return;
+
+    const ws = new WebSocket(url);
+    wsRef.current = ws;
+
+    ws.onopen = () => {
+      // console.log("WS Connected");
+      setIsConnected(true);
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        const parsed = JSON.parse(event.data);
+        setMessages((prev) => [...prev, parsed]);
+      } catch {
+        setMessages((prev) => [...prev, event.data]);
+      }
+    };
+
+    ws.onclose = (e) => {
+      // console.log("WS Disconnected");
+      // console.log("WS Closed", e.code, e.reason);
+      setIsConnected(false);
+
+      if (autoReconnect) {
+        reconnectRef.current = setTimeout(() => {
+          // console.log("WS Reconnecting...");
+          connect();
+        }, 2000);
+      }
+    };
+
+    ws.onerror = (err) => {
+      // console.log("WS Error");
+
+      // console.log("WS ERROR:", err);
+      ws.close();
+    };
+  }, [url, autoReconnect]);
+
+  const disconnect = useCallback(() => {
+    autoReconnect = false;
+    clearTimeout(reconnectRef.current);
+    wsRef.current?.close();
+    setIsConnected(false);
+  }, [autoReconnect]);
+
+  const sendMessage = useCallback((data) => {
+    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+      console.log("WS not connected");
+      return false;
+    }
+
+    wsRef.current.send(JSON.stringify(data));
+    return true;
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      clearTimeout(reconnectRef.current);
+      wsRef.current?.close();
+    };
+  }, []);
+
+  return {
+    isConnected,
+    messages,
+    connect,
+    disconnect,
+    sendMessage,
+  };
 }

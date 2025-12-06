@@ -1,14 +1,15 @@
-import Breadcrumb from "@/components/breadcrumb";
+import Breadcrumb from '@/components/component/breadcrumb';;
 import ButtonSubmit from "@/components/formik/button-submit";
 import TextAreaField from "@/components/formik/text-area-field";
 import TextField from "@/components/formik/text-field";
 import TextFieldNumber from "@/components/formik/text-field-number";
 import MainAuth from "@/components/layout/main-auth";
 import { Api } from "@/lib/api";
+import { LoginUser } from "@/types/auth";
 import PageWithLayoutType from "@/types/layout";
 import { CreateProduct } from "@/types/product";
 import notif from "@/utils/notif";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { Form, Formik, FormikHelpers, FormikValues } from "formik";
 import Head from "next/head";
 import { useRouter } from "next/router";
@@ -16,7 +17,10 @@ import { NextPage } from "next/types";
 import * as Yup from 'yup';
 
 
-type Props = object
+
+type Props = {
+  loginUser: LoginUser
+}
 
 const schema = Yup.object().shape({
   name: Yup.string().required('Required field'),
@@ -33,14 +37,9 @@ const initFormikValue: CreateProduct = {
 }
 
 
-const New: NextPage<Props> = () => {
+const New: NextPage<Props> = ({ loginUser }) => {
 
   const router = useRouter();
-
-  const { data: loginUser } = useQuery({
-    queryKey: ['init'],
-    queryFn: () => Api.get('/auth/init'),
-  })
 
   const { mutate: mutateSubmit, isPending } = useMutation({
     mutationKey: ['product', 'create'],
@@ -48,7 +47,7 @@ const New: NextPage<Props> = () => {
   });
 
   const handleSubmit = async (values: CreateProduct, formikHelpers: FormikHelpers<CreateProduct>) => {
-    values.companyId = loginUser?.payload?.user?.company?.id
+    values.companyId = loginUser.user.company.id
 
     mutateSubmit(values, {
       onSuccess: ({ status, message, payload }) => {

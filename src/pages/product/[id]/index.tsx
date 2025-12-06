@@ -1,4 +1,4 @@
-import Breadcrumb from "@/components/breadcrumb";
+import Breadcrumb from '@/components/component/breadcrumb';;
 import MainAuth from "@/components/layout/main-auth";
 import ModalUpdateProduct from "@/components/modal/modal-update-product";
 import { Api } from "@/lib/api";

@@ -1,4 +1,4 @@
-import Breadcrumb from "@/components/breadcrumb"
+import Breadcrumb from '@/components/component/breadcrumb';
 import MainAuth from "@/components/layout/main-auth"
 import ModalDeleteVerify from "@/components/modal/modal-delete-verify"
 import Table from "@/components/table/table"
