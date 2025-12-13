@@ -30,7 +30,7 @@ const schema = Yup.object().shape({
   name: Yup.string().required('Required'),
   description: Yup.string(),
   propertyId: Yup.string().required('Required'),
-  propertygroupId: Yup.string().required('Required'),
+  unitId: Yup.string().required('Required'),
   startDt: Yup.string().required('Required'),
   endDt: Yup.string().required('Required'),
 });
@@ -55,7 +55,7 @@ const ModalEvent: NextPage<Props> = ({ show, onClickOverlay, newEvent, property,
           <ModalEventForm
             onClickOverlay={onClickOverlay}
             event={newEvent}
-            propertygroups={property.propertygroups}
+            units={property.units}
             setItems={setItems}
           />
         ) : (
@@ -144,7 +144,7 @@ const ModalEventTab = ({ show, onClickOverlay, newEvent, property, setItems }) =
               <ModalEventForm
                 onClickOverlay={onClickOverlay}
                 event={event}
-                propertygroups={property.propertygroups}
+                units={property.units}
                 setItems={setItems}
               />
             )}
@@ -195,7 +195,7 @@ const ModalEventSummary = ({ event, property }) => {
         </div>
         <div className="grid grid-cols-4 gap-4 mb-2">
           <div className={''}>{'Property Group'}</div>
-          <div className={'col-span-3'}>{event.propertygroupName || '-'}</div>
+          <div className={'col-span-3'}>{event.unitName || '-'}</div>
         </div>
         <div className="grid grid-cols-4 gap-4 mb-2">
           <div className={''}>{'Price'}</div>
@@ -285,7 +285,7 @@ const ModalEventProduct = ({ event }) => {
 
 
 
-const ModalEventForm = ({ onClickOverlay, event, propertygroups, setItems }) => {
+const ModalEventForm = ({ onClickOverlay, event, units, setItems }) => {
 
   const [initFormikValue, setInitFormikValue] = useState(event)
   const [showModalDelete, setShowModalDelete] = useState<boolean>(false);
@@ -434,8 +434,8 @@ const ModalEventForm = ({ onClickOverlay, event, propertygroups, setItems }) => 
                 <div className="">
                   <DropdownField
                     label={"Property Group"}
-                    name={"propertygroupId"}
-                    items={propertygroups}
+                    name={"unitId"}
+                    items={units}
                     keyValue={"id"}
                     keyLabel={"name"}
                     placeholder="Select Property Group"

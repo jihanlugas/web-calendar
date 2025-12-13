@@ -1,6 +1,6 @@
 import { CompanyView } from "./company";
 import { Paging } from "./pagination";
-import { Propertygroup } from "./propertygroup";
+import { Unit } from "./unit";
 import { Propertytimeline } from "./propertytimeline";
 
 export interface PropertyView {
@@ -24,7 +24,7 @@ export interface PropertyView {
 
   company?: CompanyView;
   propertytimeline?: Propertytimeline;
-  propertygroups?: Propertygroup[];
+  units?: Unit[];
   
 }
 
@@ -44,10 +44,10 @@ export declare interface CreateProperty {
   name: string;
   description: string;
   price: string | number;
-  propertygroups: CreatePropertyPropertygroup[];
+  units: CreatePropertyUnit[];
 }
 
-export declare interface CreatePropertyPropertygroup {
+export declare interface CreatePropertyUnit {
   name: string;
   description: string;  
 }

@@ -27,7 +27,7 @@ const schema = Yup.object().shape({
   name: Yup.string().required('Required'),
   description: Yup.string(),
   propertyId: Yup.string().required('Required'),
-  propertygroupId: Yup.string().required('Required'),
+  unitId: Yup.string().required('Required'),
   startDt: Yup.string().required('Required'),
   endDt: Yup.string().required('Required'),
 });

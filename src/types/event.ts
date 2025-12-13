@@ -7,7 +7,7 @@ export declare interface EventView {
   id: string;
   companyId: string;
   propertyId: string;
-  propertygroupId: string;
+  unitId: string;
   name: string;
   description: string;
   startDt: Moment;
@@ -20,19 +20,19 @@ export declare interface EventView {
   deleteDt?: string;
   companyName: string;
   propertyName: string;
-  propertygroupName: string;
+  unitName: string;
   createName: string;
   updateName: string;
 
   company?: CompanyView;
-  propertygroup?: PropertyView;
-  // property?: PropertygroupView;
+  unit?: PropertyView;
+  // property?: UnitView;
 }
 
 export declare interface EventNew {
   companyId: string;
   propertyId: string;
-  propertygroupId: string;
+  unitId: string;
   name: string;
   description: string;
   startDt: string | Date ;

@@ -1,4 +1,4 @@
-export interface Propertygroup {
+export interface Unit {
   id: string;
   companyId: string;
   name: string;
@@ -15,14 +15,14 @@ export interface Propertygroup {
   companyName: string;
 }
 
-export declare interface CreatePropertygroup {
+export declare interface CreateUnit {
   companyId: string;
   propertyId: string;
   name: string;
   description: string;
 }
 
-export declare interface UpdatePropertygroup {
+export declare interface UpdateUnit {
   name: string;
   description: string;
 }

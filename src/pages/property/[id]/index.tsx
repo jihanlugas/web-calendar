@@ -1,7 +1,7 @@
 import Breadcrumb from '@/components/component/breadcrumb';;
 import MainAuth from "@/components/layout/main-auth";
 import ModalDeleteVerify from "@/components/modal/modal-delete-verify";
-import ModalPropertygroup from "@/components/modal/modal-propertygroup";
+import ModalUnit from "@/components/modal/modal-unit";
 import ModalUpdateProperty from "@/components/modal/modal-update-property";
 import { Api } from "@/lib/api";
 import PageWithLayoutType from "@/types/layout";
@@ -29,13 +29,13 @@ const Index: NextPage<Props> = ({ id }) => {
   const [selectedPropertyGroupId, setSelectedPropertyGroupId] = useState<string>('')
 
   const [showModalUpdateProperty, setShowModalUpdateProperty] = useState<boolean>(false);
-  const [showModalPropertygroup, setShowModalPropertygroup] = useState<boolean>(false);
+  const [showModalUnit, setShowModalUnit] = useState<boolean>(false);
 
   const [showModalDelete, setShowModalDelete] = useState<boolean>(false);
   const [deleteId, setDeleteId] = useState<string>('');
   const [deleteVerify, setDeleteVerify] = useState<string>('');
 
-  const preloads = 'Propertygroups'
+  const preloads = 'Units'
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['property', id, preloads],
     queryFn: ({ queryKey }) => {
@@ -45,8 +45,8 @@ const Index: NextPage<Props> = ({ id }) => {
   })
 
   const { mutate: mutateDelete, isPending: isPendingDelete } = useMutation({
-    mutationKey: ['propertygroup', 'delete', deleteId],
-    mutationFn: (id: string) => Api.delete('/propertygroup/' + id)
+    mutationKey: ['unit', 'delete', deleteId],
+    mutationFn: (id: string) => Api.delete('/unit/' + id)
   });
 
   const toggleModalUpdateProperty = (id = '', refresh = false) => {
@@ -57,12 +57,12 @@ const Index: NextPage<Props> = ({ id }) => {
     setShowModalUpdateProperty(!showModalUpdateProperty);
   };
 
-  const toggleModalPropertygroup = (id = '', refresh = false) => {
+  const toggleModalUnit = (id = '', refresh = false) => {
     if (refresh) {
       refetch()
     }
     setSelectedPropertyGroupId(id)
-    setShowModalPropertygroup(!showModalPropertygroup);
+    setShowModalUnit(!showModalUnit);
   };
 
   const toggleModalDelete = (id = '', verify = '') => {
@@ -111,9 +111,9 @@ const Index: NextPage<Props> = ({ id }) => {
         onClickOverlay={toggleModalUpdateProperty}
         id={selectedPropertyId}
       />
-      <ModalPropertygroup
-        show={showModalPropertygroup}
-        onClickOverlay={toggleModalPropertygroup}
+      <ModalUnit
+        show={showModalUnit}
+        onClickOverlay={toggleModalUnit}
         property={property}
         id={selectedPropertyGroupId}
       />
@@ -184,7 +184,7 @@ const Index: NextPage<Props> = ({ id }) => {
                     className='w-60 h-10 bg-primary-500 hover:bg-primary-600 rounded text-gray-50 font-bold flex justify-center items-center duration-300 hover:scale-105 text-base'
                     type="button"
                     title='Create Property Group'
-                    onClick={() => toggleModalPropertygroup()}
+                    onClick={() => toggleModalUnit()}
                   >
                     <BiPlus className='mr-2' size={'1.5rem'} />
                     <div>Create Property Group</div>
@@ -192,15 +192,15 @@ const Index: NextPage<Props> = ({ id }) => {
                 </div>
                 <hr className="my-4 border-2" />
                 <div className="grid grid-cols-1 gap-4">
-                  {property?.propertygroups ? (
+                  {property?.units ? (
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4">
-                      {property?.propertygroups.sort((a, b) => a.name.localeCompare(b.name)).map((propertygroup, key) => (
+                      {property?.units.sort((a, b) => a.name.localeCompare(b.name)).map((unit, key) => (
                         <div key={key} className="flex items-center border-b-2 pb-2">
-                          <div data-tooltip-id={`tootltip-name-${propertygroup.id}`} className="flex-1">{propertygroup.name}</div>
-                          {propertygroup.description && (
-                            <Tooltip id={`tootltip-name-${propertygroup.id}`} clickable>
+                          <div data-tooltip-id={`tootltip-name-${unit.id}`} className="flex-1">{unit.name}</div>
+                          {unit.description && (
+                            <Tooltip id={`tootltip-name-${unit.id}`} clickable>
                               <div className="font-bold">Description</div>
-                              <div className="whitespace-pre-line">{propertygroup.description}</div>
+                              <div className="whitespace-pre-line">{unit.description}</div>
                             </Tooltip>
                           )}
                           <div className="ml-auto flex">
@@ -208,7 +208,7 @@ const Index: NextPage<Props> = ({ id }) => {
                               className='w-10 h-10 rounded text-amber-500 hover:text-amber-600 font-bold flex justify-center items-center duration-300 hover:scale-105 text-base'
                               type="button"
                               title='Update Property Group'
-                              onClick={() => toggleModalPropertygroup(propertygroup.id)}
+                              onClick={() => toggleModalUnit(unit.id)}
                             >
                               <RiPencilLine className='' size={'1.5rem'} />
                             </button>
@@ -216,7 +216,7 @@ const Index: NextPage<Props> = ({ id }) => {
                               className='w-10 h-10 rounded text-rose-500 hover:text-rose-600 font-bold flex justify-center items-center duration-300 hover:scale-105 text-base'
                               type="button"
                               title='Delete Property Group'
-                              onClick={() => handleClickDelete(propertygroup.id, propertygroup.name)}
+                              onClick={() => handleClickDelete(unit.id, unit.name)}
                             >
                               <IoClose className='' size={'1.5rem'} />
                             </button>

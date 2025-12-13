@@ -63,7 +63,7 @@ const defaultEvent: EventNew = {
   name: '',
   description: '',
   propertyId: '',
-  propertygroupId: '',
+  unitId: '',
   startDt: new Date(),
   endDt: new Date(),
   status: EVENT_STATUS_CONFIRM,
@@ -117,7 +117,7 @@ const SingleTimeline: NextPage<SingleTimelineProps> = ({ property }) => {
       name: '',
       description: '',
       propertyId: property.id,
-      propertygroupId: groupId,
+      unitId: groupId,
       startDt: new Date(startDt.setHours(startDt.getHours(), 0, 0, 0)),
       endDt: new Date(endDt.setHours(endDt.getHours() + 1, 0, 0, 0)),
       status: EVENT_STATUS_CONFIRM,
@@ -135,7 +135,7 @@ const SingleTimeline: NextPage<SingleTimelineProps> = ({ property }) => {
       name: '',
       description: '',
       propertyId: property.id,
-      propertygroupId: "",
+      unitId: "",
       startDt: new Date(startDt.setHours(startDt.getHours() + 1, 0, 0, 0)),
       endDt: new Date(endDt.setHours(endDt.getHours() + 2, 0, 0, 0)),
       status: EVENT_STATUS_CONFIRM,
@@ -159,7 +159,7 @@ const SingleTimeline: NextPage<SingleTimelineProps> = ({ property }) => {
         const duration = moment.duration(moment(item.endDt).diff(moment(item.startDt)));
         item.startDt = moment(dragTime)
         item.endDt = moment(dragTime).add(duration)
-        item.propertygroupId = property.propertygroups[newGroupOrder].id
+        item.unitId = property.units[newGroupOrder].id
 
         mutateUpdate(item, {
           onSuccess: ({ status, message }) => {
@@ -257,7 +257,7 @@ const SingleTimeline: NextPage<SingleTimelineProps> = ({ property }) => {
           minZoom={1000 * 60 * 60 * property.propertytimeline.minZoomTimelineHour}
           maxZoom={1000 * 60 * 60 * property.propertytimeline.maxZoomTimelineHour}
           dragSnap={1000 * 60 * property.propertytimeline.dragSnapMin}
-          groups={property.propertygroups}
+          groups={property.units}
           items={items}
           onBoundsChange={onBoundsChange}
           onCanvasDoubleClick={onCanvasDoubleClick}

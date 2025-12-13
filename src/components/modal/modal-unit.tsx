@@ -42,21 +42,21 @@ const ModalEditProperty: NextPage<Props> = ({ show, onClickOverlay, id, property
 
   const preloads = 'Company'
   const { data, isLoading } = useQuery({
-    queryKey: ['propertygroup', selectedId, preloads],
+    queryKey: ['unit', selectedId, preloads],
     queryFn: ({ queryKey }) => {
       const [, selectedId] = queryKey;
-      return selectedId ? Api.get('/propertygroup/' + selectedId, { preloads }) : null
+      return selectedId ? Api.get('/unit/' + selectedId, { preloads }) : null
     },
   })
 
   const { mutate: mutateCreate, isPending: isPendingCreate } = useMutation({
-    mutationKey: ['propertygroup', 'create'],
-    mutationFn: (val: FormikValues) => Api.post('/propertygroup', val),
+    mutationKey: ['unit', 'create'],
+    mutationFn: (val: FormikValues) => Api.post('/unit', val),
   });
 
   const { mutate: mutateUpdate, isPending: isPendingUpdate } = useMutation({
-    mutationKey: ['propertygroup', 'update', selectedId],
-    mutationFn: (val: FormikValues) => Api.put('/propertygroup/' + selectedId, val),
+    mutationKey: ['unit', 'update', selectedId],
+    mutationFn: (val: FormikValues) => Api.put('/unit/' + selectedId, val),
   });
 
   const handleSubmit = async (values, formikHelpers) => {

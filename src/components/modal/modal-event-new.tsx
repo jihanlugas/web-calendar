@@ -15,6 +15,7 @@ import { useMutation } from "@tanstack/react-query";
 import { Api } from "@/lib/api";
 import { useEffect, useState } from "react";
 import { displayDateTimeForm } from "@/utils/formater";
+import notif from "@/utils/notif";
 
 type Props = {
   show: boolean;
@@ -26,8 +27,7 @@ type Props = {
 const schema = Yup.object().shape({
   name: Yup.string().required('Required'),
   description: Yup.string(),
-  propertyId: Yup.string().required('Required'),
-  propertygroupId: Yup.string().required('Required'),
+  unitId: Yup.string().required('Required'),
   startDt: Yup.string().required('Required'),
   endDt: Yup.string().required('Required'),
 });
@@ -42,6 +42,36 @@ const ModalEventNew: NextPage<Props> = ({ show, onClickOverlay, property, eventN
     mutationKey: ['event', 'create'],
     mutationFn: (val: FormikValues) => Api.post('/event', val),
   });
+
+  const handleSubmit = (values: any, { setSubmitting, setErrors }: any) => {
+    // Prepare values for API submission
+    const submitValues = {
+      ...values,
+      propertyId: property.id,
+      // Ensure dates are in ISO format for the API
+      startDt: new Date(values.startDt).toISOString(),
+      endDt: new Date(values.endDt).toISOString()
+    };
+
+    mutateCreate(submitValues, {
+      onSuccess: (res) => {
+        setSubmitting(false);
+        if (res.status) {
+          notif.success(res.message || 'Event created successfully');
+          onClickOverlay(true); // Close modal and refresh data
+        } else {
+          if (res.payload?.listError) {
+            setErrors(res.payload.listError);
+          }
+          notif.error(res.message || 'Failed to create event');
+        }
+      },
+      onError: (error: any) => {
+        setSubmitting(false);
+        notif.error(error.message || 'An error occurred while creating the event');
+      }
+    });
+  };
 
   useEffect(() => {
     if (show) {
@@ -70,7 +100,7 @@ const ModalEventNew: NextPage<Props> = ({ show, onClickOverlay, property, eventN
             initialValues={initFormikValue}
             validationSchema={schema}
             enableReinitialize={true}
-            onSubmit={() => { }}
+            onSubmit={handleSubmit}
           >
             {({ values }) => {
               return (
@@ -95,8 +125,8 @@ const ModalEventNew: NextPage<Props> = ({ show, onClickOverlay, property, eventN
                     <div className="">
                       <DropdownField
                         label={"Property Group"}
-                        name={"propertygroupId"}
-                        items={property.propertygroups}
+                        name={"unitId"}
+                        items={property.units}
                         keyValue={"id"}
                         keyLabel={"name"}
                         placeholder="Select Property Group"

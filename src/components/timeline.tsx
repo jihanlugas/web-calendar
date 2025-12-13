@@ -24,7 +24,7 @@ const keys: TimelineKeys = {
   itemIdKey: 'id',
   itemTitleKey: 'name',
   itemDivTitleKey: 'description',
-  itemGroupKey: 'propertygroupId',
+  itemGroupKey: 'unitId',
   itemTimeStartKey: 'startDt',
   itemTimeEndKey: 'endDt',
 }
@@ -148,7 +148,7 @@ export default function Timeline({
               </div>
               <div className='flex justify-between mt-2'>
                 <div></div>
-                <div className='font-bold' >{"PAID"}</div>
+                <div className='font-bold text-green-500' >{"PAID"}</div>
               </div>
             </div>
           </div>

@@ -22,7 +22,7 @@ type Props = {
   loginUser: LoginUser
 }
 
-const schemaPropertygroup = Yup.object().shape({
+const schemaUnit = Yup.object().shape({
   name: Yup.string().required('Required field'),
   description: Yup.string(),
 });
@@ -31,9 +31,9 @@ const schema = Yup.object().shape({
   name: Yup.string().required('Required field'),
   description: Yup.string(),
   price: Yup.number().nullable().required('Required field'),
-  propertygroups: Yup
+  units: Yup
     .array()
-    .of(schemaPropertygroup)
+    .of(schemaUnit)
     .min(1, 'At least one property group is required')
     .required('Property groups are required'),
 });
@@ -44,7 +44,7 @@ const initFormikValue: CreateProperty = {
   name: '',
   description: '',
   price: '',
-  propertygroups: [{
+  units: [{
     name: "",
     description: "",
   }],
@@ -136,7 +136,7 @@ const New: NextPage<Props> = ( {loginUser} ) => {
                       </div>
                     </div>
                     <div className="mb-4">
-                      <FieldArray name="propertygroups">
+                      <FieldArray name="units">
                         {({ remove, push }) => {
                           return (
                             <div>
@@ -147,17 +147,17 @@ const New: NextPage<Props> = ( {loginUser} ) => {
                                 </button>
                               </div>
                               <hr className="my-4" />
-                              {values.propertygroups.map((propertygroup, key) => (
+                              {values.units.map((unit, key) => (
                                 <div key={key}>
                                   <div className="flex">
                                     <TextField
                                       label={'Group Name'}
-                                      name={`propertygroups.${key}.name`}
+                                      name={`units.${key}.name`}
                                       type={'text'}
                                       placeholder={'Group Name'}
                                       required
                                     />
-                                    <button type="button" disabled={values.propertygroups.length === 1} className="mt-auto mb-6 h-10 w-10 ease-in-out flex justify-center items-center rounded duration-300 text-rose-500 hover:text-rose-600 disabled:text-gray-500 cursor-not-allowed" onClick={() => remove(key)}>
+                                    <button type="button" disabled={values.units.length === 1} className="mt-auto mb-6 h-10 w-10 ease-in-out flex justify-center items-center rounded duration-300 text-rose-500 hover:text-rose-600 disabled:text-gray-500 cursor-not-allowed" onClick={() => remove(key)}>
                                       <IoClose className='' size={'1.5rem'} />
                                     </button>
                                   </div>
