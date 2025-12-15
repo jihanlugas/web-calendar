@@ -3,7 +3,7 @@ import { IoClose } from "react-icons/io5";
 import Modal from "./modal";
 import { PropertyView } from "@/types/property";
 import { EventNew } from "@/types/event";
-import { Form, Formik, FormikValues } from "formik";
+import { Form, Formik, FormikValues, useFormikContext } from "formik";
 import * as Yup from 'yup';
 import TextField from "../formik/text-field";
 import DateField from "../formik/date-field";
@@ -11,11 +11,12 @@ import { EVENT_STATUS } from "@/utils/constant";
 import DropdownField from "../formik/dropdown-field";
 import TextAreaField from "../formik/text-area-field";
 import ButtonSubmit from "../formik/button-submit";
-import { useMutation } from "@tanstack/react-query";
+import { UseMutateFunction, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Api } from "@/lib/api";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { displayDateTimeForm } from "@/utils/formater";
 import notif from "@/utils/notif";
+import TextFieldNumber from "../formik/text-field-number";
 
 type Props = {
   show: boolean;
@@ -24,23 +25,96 @@ type Props = {
   eventNew: EventNew
 }
 
+
+type PriceWatcherProps = {
+  propertyId: string;
+  mutateGetPrice: UseMutateFunction<any, unknown, { propertyId: string; startDt: string; endDt: string }, unknown>;
+};
+
+
 const schema = Yup.object().shape({
   name: Yup.string().required('Required'),
   description: Yup.string(),
   unitId: Yup.string().required('Required'),
   startDt: Yup.string().required('Required'),
-  endDt: Yup.string().required('Required'),
+  endDt: Yup.string()
+    .required('Required')
+    .test(
+      'is-after-start',
+      'End date harus lebih besar dari start date',
+      function (value) {
+        const { startDt } = this.parent;
+        if (!startDt || !value) return true;
+
+        return new Date(value) > new Date(startDt);
+      }
+    ),
+  price: Yup.number().required('Required'),
 });
+
+
+
+export function PriceWatcher({ propertyId, mutateGetPrice }: PriceWatcherProps) {
+  const { values, setFieldValue } = useFormikContext<any>();
+
+  useEffect(() => {
+    if (!values) return;
+
+    const { startDt, endDt } = values;
+
+    if (!propertyId || !startDt || !endDt) return;
+
+    const start = new Date(startDt);
+    const end = new Date(endDt);
+
+    if (end <= start) return;
+
+    mutateGetPrice(
+      {
+        propertyId,
+        startDt: start.toISOString(),
+        endDt: end.toISOString(),
+      },
+      {
+        onSuccess: (res: any) => {
+          if (res.status) {
+            setFieldValue("price", res.payload || null);
+          }
+        },
+        onError: (error: any) => {
+          notif.error(error.message || 'An error occurred while fetching price');
+        }
+      }
+    );
+  }, [propertyId, values?.startDt, values?.endDt]);
+
+  return null;
+}
 
 
 const ModalEventNew: NextPage<Props> = ({ show, onClickOverlay, property, eventNew }) => {
 
   const [initFormikValue, setInitFormikValue] = useState(eventNew)
 
-
   const { mutate: mutateCreate, isPending: isPendingCreate } = useMutation({
     mutationKey: ['event', 'create'],
     mutationFn: (val: FormikValues) => Api.post('/event', val),
+  });
+
+  const { mutate: mutateGetPrice } = useMutation({
+    mutationKey: ['property', 'get-price'],
+    mutationFn: (payload: { propertyId: string; startDt: string; endDt: string }) =>
+      Api.post('/property/get-price', payload)
+    // onSuccess: (res) => {
+    //   if (res.status) {
+    //     formRef.current.setFieldValue('price', (res.payload || null));
+    //   } else {
+    //     notif.error(res.message || 'Failed to get price');
+    //   }
+    // },
+    // onError: (error: any) => {
+    //   notif.error(error.message || 'An error occurred while fetching price');
+    // }
   });
 
   const handleSubmit = (values: any, { setSubmitting, setErrors }: any) => {
@@ -102,76 +176,89 @@ const ModalEventNew: NextPage<Props> = ({ show, onClickOverlay, property, eventN
             enableReinitialize={true}
             onSubmit={handleSubmit}
           >
-            {({ values }) => {
+            {({ values, setFieldValue }) => {
               return (
-                <Form noValidate={true} className="h-[70vh] flex flex-col">
-                  <div className='mb-4'>
-                    <div className="">
-                      <TextField
-                        label={'Event Name'}
-                        name={'name'}
-                        type={'text'}
-                        placeholder={'Event Name'}
-                        required
-                      />
+                <>
+                  <PriceWatcher
+                    propertyId={property.id}
+                    mutateGetPrice={mutateGetPrice}
+                  />
+                  <Form noValidate={true} className="h-[70vh] flex flex-col">
+                    <div className='mb-4'>
+                      <div className="">
+                        <TextField
+                          label={'Event Name'}
+                          name={'name'}
+                          type={'text'}
+                          placeholder={'Event Name'}
+                          required
+                        />
+                      </div>
+                      <div className="">
+                        <TextAreaField
+                          label={'Description'}
+                          name={'description'}
+                          placeholder={'Description'}
+                        />
+                      </div>
+                      <div className="">
+                        <DropdownField
+                          label={"Property Group"}
+                          name={"unitId"}
+                          items={property.units}
+                          keyValue={"id"}
+                          keyLabel={"name"}
+                          placeholder="Select Property Group"
+                          placeholderValue={""}
+                          required
+                        />
+                      </div>
+                      <div className="">
+                        <DropdownField
+                          label={"Status"}
+                          name={"status"}
+                          items={EVENT_STATUS}
+                          keyValue={"value"}
+                          keyLabel={"label"}
+                          placeholder="Select Status"
+                          placeholderValue={""}
+                          required
+                        />
+                      </div>
+                      <div className=''>
+                        <DateField
+                          label='Start Date'
+                          name='startDt'
+                          required
+                        />
+                      </div>
+                      <div className=''>
+                        <DateField
+                          label='End Date'
+                          name='endDt'
+                          required
+                        />
+                      </div>
+                      <div className="">
+                        <TextFieldNumber
+                          label={'Price'}
+                          name={`price`}
+                          placeholder={'1...'}
+                          required
+                        />
+                      </div>
                     </div>
-                    <div className="">
-                      <TextAreaField
-                        label={'Description'}
-                        name={'description'}
-                        placeholder={'Description'}
-                      />
+                    <div className="mt-auto">
+                      <div className={'mb-4'}>
+                        <ButtonSubmit
+                          label={'Save'}
+                          disabled={isPendingCreate}
+                          loading={isPendingCreate}
+                        />
+                      </div>
                     </div>
-                    <div className="">
-                      <DropdownField
-                        label={"Property Group"}
-                        name={"unitId"}
-                        items={property.units}
-                        keyValue={"id"}
-                        keyLabel={"name"}
-                        placeholder="Select Property Group"
-                        placeholderValue={""}
-                        required
-                      />
-                    </div>
-                    <div className="">
-                      <DropdownField
-                        label={"Status"}
-                        name={"status"}
-                        items={EVENT_STATUS}
-                        keyValue={"value"}
-                        keyLabel={"label"}
-                        placeholder="Select Status"
-                        placeholderValue={""}
-                        required
-                      />
-                    </div>
-                    <div className=''>
-                      <DateField
-                        label='Start Date'
-                        name='startDt'
-                        required
-                      />
-                    </div>
-                    <div className=''>
-                      <DateField
-                        label='End Date'
-                        name='endDt'
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div className="mt-auto">
-                    <div className={'mb-4'}>
-                      <ButtonSubmit
-                        label={'Save'}
-                        disabled={isPendingCreate}
-                        loading={isPendingCreate}
-                      />
-                    </div>
-                  </div>
-                </Form>
+                  </Form>
+                </>
               );
             }}
           </Formik>

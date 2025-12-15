@@ -38,4 +38,5 @@ export declare interface EventNew {
   startDt: string | Date ;
   endDt: string | Date ;
   status: string
+  price: string | number;
 }

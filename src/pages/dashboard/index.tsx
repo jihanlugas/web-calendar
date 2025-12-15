@@ -67,6 +67,7 @@ const defaultEvent: EventNew = {
   startDt: new Date(),
   endDt: new Date(),
   status: EVENT_STATUS_CONFIRM,
+  price: '',
 }
 
 const SingleTimeline: NextPage<SingleTimelineProps> = ({ property }) => {
@@ -121,6 +122,7 @@ const SingleTimeline: NextPage<SingleTimelineProps> = ({ property }) => {
       startDt: new Date(startDt.setHours(startDt.getHours(), 0, 0, 0)),
       endDt: new Date(endDt.setHours(endDt.getHours() + 1, 0, 0, 0)),
       status: EVENT_STATUS_CONFIRM,
+      price: '',
     })
 
     toggleModalEventNew()
