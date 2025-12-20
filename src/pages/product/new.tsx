@@ -116,7 +116,7 @@ const New: NextPage<Props> = ({ loginUser }) => {
                         <TextFieldNumber
                           label={'Price'}
                           name={'price'}
-                          placeholder={'Price'}
+                          placeholder={'1000xx'}
                           required
                         />
                       </div>

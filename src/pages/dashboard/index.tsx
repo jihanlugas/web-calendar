@@ -82,8 +82,8 @@ const SingleTimeline: NextPage<SingleTimelineProps> = ({ property }) => {
   const [pageRequest, setPageRequest] = useState({
     companyId: property.companyId,
     propertyId: property.id,
-    startDt: moment().add(-1 * property.propertytimeline.defaultStartDtValue * 2, property.propertytimeline.defaultStartDtUnit as moment.unitOfTime.DurationConstructor).toISOString(), // *2 agar dapat data lebih banyak, karena onBoundsChange juga get data lebih jauh
-    endDt: moment().add(property.propertytimeline.defaultEndDtValue * 2, property.propertytimeline.defaultEndDtUnit as moment.unitOfTime.DurationConstructor).toISOString(), // *2 agar dapat data lebih banyak, karena onBoundsChange juga get data lebih jauh
+    startDt: moment().startOf("day").toISOString(),
+    endDt: moment().endOf("day").toISOString(),
     preloads: "",
   });
 
@@ -134,13 +134,14 @@ const SingleTimeline: NextPage<SingleTimelineProps> = ({ property }) => {
 
     setEventNew({
       companyId: property.companyId,
-      name: '',
-      description: '',
+      name: "",
+      description: "",
       propertyId: property.id,
       unitId: "",
       startDt: new Date(startDt.setHours(startDt.getHours() + 1, 0, 0, 0)),
       endDt: new Date(endDt.setHours(endDt.getHours() + 2, 0, 0, 0)),
       status: EVENT_STATUS_CONFIRM,
+      price: "",
     })
 
     toggleModalEventNew()
@@ -254,8 +255,8 @@ const SingleTimeline: NextPage<SingleTimelineProps> = ({ property }) => {
           isConnected={isConnected}
           connect={connect}
           propertyName={property.name}
-          defaultTimeStart={moment().add(-1 * property.propertytimeline.defaultStartDtValue, property.propertytimeline.defaultStartDtUnit as moment.unitOfTime.DurationConstructor).valueOf()}
-          defaultTimeEnd={moment().add(property.propertytimeline.defaultEndDtValue, property.propertytimeline.defaultEndDtUnit as moment.unitOfTime.DurationConstructor).valueOf()}
+          defaultTimeStart={moment().startOf("day").valueOf()}
+          defaultTimeEnd={moment().endOf("day").valueOf()}
           minZoom={1000 * 60 * 60 * property.propertytimeline.minZoomTimelineHour}
           maxZoom={1000 * 60 * 60 * property.propertytimeline.maxZoomTimelineHour}
           dragSnap={1000 * 60 * property.propertytimeline.dragSnapMin}

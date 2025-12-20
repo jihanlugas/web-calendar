@@ -54,7 +54,7 @@ const Index: NextPage<Props> = () => {
   const [pageRequest, setPageRequest] = useState<PageProperty>({
     limit: 10,
     page: 1,
-    preloads: "",
+    preloads: "Propertyprices",
   });
 
   const column: ColumnDef<PropertyView>[] = [
@@ -85,19 +85,19 @@ const Index: NextPage<Props> = () => {
       },
     },
     {
-      id: 'price',
-      accessorKey: 'price',
+      id: 'description',
+      accessorKey: 'description',
       header: () => {
         return (
           <div className='whitespace-nowrap'>
-            {"Price"}
+            {"Description"}
           </div>
         );
       },
       cell: ({ getValue }) => {
         return (
-          <div className='w-full capitalize text-right'>
-            {displayMoney(getValue() as number)}
+          <div className='w-full'>
+            <span>{getValue() as string}</span>
           </div>
         )
       },
@@ -138,7 +138,7 @@ const Index: NextPage<Props> = () => {
     },
   ]
 
-  
+
   const { isLoading, data, refetch } = useQuery({
     queryKey: ['property', pageRequest],
     queryFn: ({ queryKey }) => Api.get('/property', queryKey[1] as object),
@@ -148,10 +148,10 @@ const Index: NextPage<Props> = () => {
     mutationKey: ['property', 'delete', deleteId],
     mutationFn: (id: string) => Api.delete('/property/' + id)
   });
-  
+
 
   const toggleModalFilter = () => {
-    
+
   }
 
   const toggleModalDelete = (id = '', verify = '') => {

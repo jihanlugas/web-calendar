@@ -10,7 +10,6 @@ export interface PropertyView {
   description: string;
   photoId: string;
   photoUrl: string;
-  price: number;
   createBy: string;
   createDt: string;
   updateBy: string;
@@ -43,7 +42,6 @@ export declare interface CreateProperty {
   companyId: string;
   name: string;
   description: string;
-  price: string | number;
   units: CreatePropertyUnit[];
 }
 
@@ -55,7 +53,6 @@ export declare interface CreatePropertyUnit {
 export declare interface UpdateProperty {
   name: string;
   description: string;
-  price: string;
 }
 
 

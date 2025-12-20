@@ -1,9 +1,9 @@
 export interface Propertytimeline {
   id: string;
-  defaultStartDtValue: number;
-  defaultStartDtUnit: string;
-  defaultEndDtValue: number;
-  defaultEndDtUnit: string;
+  // defaultStartDtValue: number;
+  // defaultStartDtUnit: string;
+  // defaultEndDtValue: number;
+  // defaultEndDtUnit: string;
   minZoomTimelineHour: number;
   maxZoomTimelineHour: number;
   dragSnapMin: number;
