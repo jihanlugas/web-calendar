@@ -1,4 +1,4 @@
-export interface Unit {
+export interface UnitView {
   id: string;
   companyId: string;
   name: string;

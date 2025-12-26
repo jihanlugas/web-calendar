@@ -11,7 +11,7 @@ import { EVENT_STATUS } from "@/utils/constant";
 import DropdownField from "../formik/dropdown-field";
 import TextAreaField from "../formik/text-area-field";
 import ButtonSubmit from "../formik/button-submit";
-import { UseMutateFunction, useMutation, useQueryClient } from "@tanstack/react-query";
+import { UseMutateFunction, useMutation } from "@tanstack/react-query";
 import { Api } from "@/lib/api";
 import { useEffect, useRef, useState } from "react";
 import { displayDateTimeForm } from "@/utils/formater";
@@ -203,12 +203,12 @@ const ModalEventNew: NextPage<Props> = ({ show, onClickOverlay, property, eventN
                       </div>
                       <div className="">
                         <DropdownField
-                          label={"Property Group"}
+                          label={"Unit"}
                           name={"unitId"}
                           items={property.units}
                           keyValue={"id"}
                           keyLabel={"name"}
-                          placeholder="Select Property Group"
+                          placeholder="Select Unit"
                           placeholderValue={""}
                           required
                         />

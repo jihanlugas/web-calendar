@@ -31,6 +31,16 @@ export const GENDER = {
   },
 };
 
+export const DAYMAP = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
+
 
 
 export const EVENT_STATUS_HOLD = 'HOLD';

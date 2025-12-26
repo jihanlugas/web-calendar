@@ -3,7 +3,7 @@ import Modal from "@/components/modal/modal";
 import { NextPage } from "next";
 import * as Yup from 'yup';
 import { useEffect, useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Api } from "@/lib/api";
 import notif from "@/utils/notif";
 import { Form, Formik, FormikValues } from "formik";
@@ -35,6 +35,8 @@ const defaultInitFormikValue = {
 }
 
 const ModalEditProperty: NextPage<Props> = ({ show, onClickOverlay, id, property }) => {
+
+  const queryClient = useQueryClient()
 
   const [selectedId, setSelectedId] = useState<string>('')
 
@@ -70,6 +72,7 @@ const ModalEditProperty: NextPage<Props> = ({ show, onClickOverlay, id, property
             formikHelpers.resetForm();
             notif.success(message);
             onClickOverlay('', true)
+            queryClient.invalidateQueries({ queryKey: ['init'] })
           } else if (payload?.listError) {
             formikHelpers.setErrors(payload.listError);
           } else {
@@ -87,6 +90,7 @@ const ModalEditProperty: NextPage<Props> = ({ show, onClickOverlay, id, property
             formikHelpers.resetForm();
             notif.success(message);
             onClickOverlay('', true)
+            queryClient.invalidateQueries({ queryKey: ['init'] })
           } else if (payload?.listError) {
             formikHelpers.setErrors(payload.listError);
           } else {
@@ -129,7 +133,7 @@ const ModalEditProperty: NextPage<Props> = ({ show, onClickOverlay, id, property
     <Modal show={show} onClickOverlay={onClickOverlay} layout={'sm:max-w-lg'}>
       <div className="p-4">
         <div className={'text-xl mb-4 flex justify-between items-center'}>
-          <div>{selectedId === '' ? 'Create Property Group' : 'Update Property Group'}</div>
+          <div>{selectedId === '' ? 'Create Unit' : 'Update Unit'}</div>
           <button type="button" onClick={() => onClickOverlay('', true)} className={'h-10 w-10 flex justify-center items-center duration-300 rounded shadow text-rose-500 hover:scale-110'}>
             <IoClose size={'1.5rem'} className="text-rose-500" />
           </button>
@@ -155,10 +159,10 @@ const ModalEditProperty: NextPage<Props> = ({ show, onClickOverlay, id, property
                     <Form noValidate={true}>
                       <div className="mb-4">
                         <TextField
-                          label={'Property Group Name'}
+                          label={'Unit Name'}
                           name={'name'}
                           type={'text'}
-                          placeholder={'Property Group Name'}
+                          placeholder={'Unit Name'}
                           required
                         />
                       </div>

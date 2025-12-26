@@ -6,15 +6,16 @@ import ModalUpdateProperty from "@/components/modal/modal-update-property";
 import { Api } from "@/lib/api";
 import PageWithLayoutType from "@/types/layout";
 import { PropertyView } from "@/types/property";
-import { displayDateTime, displayMoney } from "@/utils/formater";
+import { displayDateTime, displayDays, displayMoney } from "@/utils/formater";
 import notif from "@/utils/notif";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { NextPage, GetServerSideProps } from "next";
 import Head from "next/head";
 import { useEffect, useState } from "react";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { BiPlus } from "react-icons/bi";
 import { IoClose } from "react-icons/io5";
+import { PiFolderOpenDuotone } from 'react-icons/pi';
 import { RiPencilLine } from "react-icons/ri";
 import { Tooltip } from "react-tooltip";
 
@@ -24,6 +25,8 @@ type Props = {
 }
 
 const Index: NextPage<Props> = ({ id }) => {
+  const queryClient = useQueryClient()
+
   const [property, setProperty] = useState<PropertyView>(null)
   const [selectedPropertyId, setSelectedPropertyId] = useState<string>('')
   const [selectedPropertyGroupId, setSelectedPropertyGroupId] = useState<string>('')
@@ -35,7 +38,7 @@ const Index: NextPage<Props> = ({ id }) => {
   const [deleteId, setDeleteId] = useState<string>('');
   const [deleteVerify, setDeleteVerify] = useState<string>('');
 
-  const preloads = 'Units'
+  const preloads = 'Units,Propertyprices'
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['property', id, preloads],
     queryFn: ({ queryKey }) => {
@@ -79,6 +82,7 @@ const Index: NextPage<Props> = ({ id }) => {
           setDeleteId('');
           toggleModalDelete();
           notif.success(message);
+          queryClient.invalidateQueries({ queryKey: ['init'] })
         } else {
           notif.error(message);
         }
@@ -136,17 +140,30 @@ const Index: NextPage<Props> = ({ id }) => {
             { name: property?.name || id, path: '' },
           ]}
         />
-        <div className='bg-white mb-20 p-4 rounded shadow'>
+        <div>
           {isLoading ? (
-            <div className="flex justify-center items-center">
-              <div className="py-20">
-                <AiOutlineLoading3Quarters className={'animate-spin'} size={'5rem'} />
+            <div className='bg-white mb-20 p-4 rounded shadow'>
+              <div className="flex justify-center items-center">
+                <div className="py-20">
+                  <AiOutlineLoading3Quarters className={'animate-spin'} size={'5rem'} />
+                </div>
+              </div>
+            </div>
+          ) : !property ? (
+            <div className='bg-white mb-20 p-4 rounded shadow'>
+              <div className='w-full text-center my-16'>
+                <div className='flex justify-center items-center mb-4'>
+                  <PiFolderOpenDuotone size={'4rem'} className={'text-gray-500'} />
+                </div>
+                <div>
+                  {'No data found'}
+                </div>
               </div>
             </div>
           ) : (
             <div>
-              <div className="mb-4">
-                <div className="text-xl flex justify-between items-center mb-2">
+              <div className='bg-white p-4 rounded shadow mb-4'>
+                <div className="text-xl flex justify-between items-center mb-4">
                   <div>Property</div>
                   <button
                     className='w-60 h-10 bg-amber-500 hover:bg-amber-600 rounded text-gray-50 font-bold flex justify-center items-center duration-300 hover:scale-105 text-base'
@@ -158,14 +175,11 @@ const Index: NextPage<Props> = ({ id }) => {
                     <div>Update Property</div>
                   </button>
                 </div>
-                <hr className="my-4 border-2" />
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-2 md:gap-4">
                   <div className="">{'Name'}</div>
                   <div className="col-span-1 md:col-span-3 mb-4 md:mb-0 text-gray-600">{property?.name}</div>
                   <div className="">{'Description'}</div>
                   <div className="col-span-1 md:col-span-3 mb-4 md:mb-0 text-gray-600 whitespace-pre-wrap">{property?.description || '-'}</div>
-                  <div className="">{'Price'}</div>
-                  <div className="col-span-1 md:col-span-3 mb-4 md:mb-0 text-gray-600">{displayMoney(property?.price)}</div>
                   <div className="">{'Create By'}</div>
                   <div className="col-span-1 md:col-span-3 mb-4 md:mb-0 text-gray-600">{property?.createName}</div>
                   <div className="">{'Create Date'}</div>
@@ -176,21 +190,19 @@ const Index: NextPage<Props> = ({ id }) => {
                   <div className="col-span-1 md:col-span-3 mb-4 md:mb-0 text-gray-600">{displayDateTime(property?.updateDt)}</div>
                 </div>
               </div>
-              <hr className="my-4 border" />
-              <div className="mb-4">
-                <div className="text-xl flex justify-between items-center mb-2">
-                  <div>Property Group</div>
+              <div className='bg-white p-4 rounded shadow mb-4'>
+                <div className="text-xl flex justify-between items-center mb-4">
+                  <div>Unit</div>
                   <button
                     className='w-60 h-10 bg-primary-500 hover:bg-primary-600 rounded text-gray-50 font-bold flex justify-center items-center duration-300 hover:scale-105 text-base'
                     type="button"
-                    title='Create Property Group'
+                    title='Create Unit'
                     onClick={() => toggleModalUnit()}
                   >
                     <BiPlus className='mr-2' size={'1.5rem'} />
-                    <div>Create Property Group</div>
+                    <div>Create Unit</div>
                   </button>
                 </div>
-                <hr className="my-4 border-2" />
                 <div className="grid grid-cols-1 gap-4">
                   {property?.units ? (
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-4">
@@ -207,7 +219,7 @@ const Index: NextPage<Props> = ({ id }) => {
                             <button
                               className='w-10 h-10 rounded text-amber-500 hover:text-amber-600 font-bold flex justify-center items-center duration-300 hover:scale-105 text-base'
                               type="button"
-                              title='Update Property Group'
+                              title='Update Unit'
                               onClick={() => toggleModalUnit(unit.id)}
                             >
                               <RiPencilLine className='' size={'1.5rem'} />
@@ -215,7 +227,7 @@ const Index: NextPage<Props> = ({ id }) => {
                             <button
                               className='w-10 h-10 rounded text-rose-500 hover:text-rose-600 font-bold flex justify-center items-center duration-300 hover:scale-105 text-base'
                               type="button"
-                              title='Delete Property Group'
+                              title='Delete Unit'
                               onClick={() => handleClickDelete(unit.id, unit.name)}
                             >
                               <IoClose className='' size={'1.5rem'} />
@@ -225,15 +237,66 @@ const Index: NextPage<Props> = ({ id }) => {
                       ))}
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-2 md:gap-4">
-                      <div className="col-span-1 md:col-span-5 mb-4 md:mb-0 text-gray-600">{"No Data"}</div>
+                    <div className='w-full text-center my-16'>
+                      <div className='flex justify-center items-center mb-4'>
+                        <PiFolderOpenDuotone size={'4rem'} className={'text-gray-500'} />
+                      </div>
+                      <div>
+                        {'No data found'}
+                      </div>
                     </div>
                   )}
                 </div>
               </div>
-              {/* <div className="hidden md:flex mb-4 p-4 whitespace-pre-wrap">
-                {JSON.stringify(property, null, 4)}
-              </div> */}
+              <div className='bg-white p-4 rounded shadow mb-4'>
+                <div className="text-xl flex justify-between items-center mb-4">
+                  <div>Prices</div>
+                </div>
+                <div className="">
+                  {property?.propertyprices ? (
+                    <div className="">
+                      {property?.propertyprices.sort((a, b) => b.priority - a.priority).map((propertyprice, key) => (
+                        <div key={key} className="flex items-center border-b-2 pb-2">
+                          <div className="flex-1">{displayDays(propertyprice.weekdays)}</div>
+                          <div className="flex-1">{displayMoney(propertyprice.price)}</div>
+                          <div className="ml-auto flex">
+                            <button
+                              className='w-10 h-10 rounded text-amber-500 hover:text-amber-600 font-bold flex justify-center items-center duration-300 hover:scale-105 text-base'
+                              type="button"
+                              title='Update Price'
+                              onClick={() => toggleModalUnit(propertyprice.id)}
+                            >
+                              <RiPencilLine className='' size={'1.5rem'} />
+                            </button>
+                            <button
+                              className='w-10 h-10 rounded text-rose-500 hover:text-rose-600 font-bold flex justify-center items-center duration-300 hover:scale-105 text-base'
+                              type="button"
+                              title='Delete Price'
+                              onClick={() => handleClickDelete(propertyprice.id, "delete")}
+                            >
+                              <IoClose className='' size={'1.5rem'} />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className='w-full text-center my-16'>
+                      <div className='flex justify-center items-center mb-4'>
+                        <PiFolderOpenDuotone size={'4rem'} className={'text-gray-500'} />
+                      </div>
+                      <div>
+                        {'No data found'}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+              {process.env.DEBUG === 'true' && (
+                <div className="hidden md:flex mb-4 p-4 whitespace-pre-wrap">
+                  {JSON.stringify(property, null, 4)}
+                </div>
+              )}
             </div>
           )}
         </div>

@@ -1,7 +1,8 @@
 import { CompanyView } from "./company";
 import { Paging } from "./pagination";
-import { Unit } from "./unit";
+import { UnitView } from "./unit";
 import { Propertytimeline } from "./propertytimeline";
+import { PropertypriceView } from "./propertyprice";
 
 export interface PropertyView {
   id: string;
@@ -23,8 +24,8 @@ export interface PropertyView {
 
   company?: CompanyView;
   propertytimeline?: Propertytimeline;
-  units?: Unit[];
-  
+  units?: UnitView[];
+  propertyprices?: PropertypriceView[];
 }
 
 export declare interface PageProperty extends Paging {

@@ -1,5 +1,6 @@
 import moment from 'moment';
 import 'moment/locale/id';
+import { DAYMAP } from './constant';
 
 
 moment.locale('id');
@@ -117,4 +118,8 @@ export const displayNumber = (value: number, locales: string = 'in-ID'): string 
 
 export const displayMoney = (value: number, locales: string = 'in-ID'): string => {
 	return 'Rp ' + displayNumber(value, locales);
+}
+
+export const displayDays = (values: number[]): string => {
+	return values.map((val) => DAYMAP[val]).join(', ');
 }

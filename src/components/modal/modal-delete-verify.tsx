@@ -1,6 +1,6 @@
 import Modal from '@/components/modal/modal';
 import { NextPage } from 'next';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { IoClose } from 'react-icons/io5';
 
@@ -17,6 +17,12 @@ const ModalDelete: NextPage<Props> = ({ show, onClickOverlay, onDelete, isLoadin
 
   const [verifyValue, setVerifyValue] = useState('');
 
+  useEffect(() => {
+    if (!show) {
+      setVerifyValue('');
+    }
+  }, [show]);
+
   return (
     <Modal show={show} onClickOverlay={onClickOverlay} layout={'sm:max-w-lg'}>
       <div className="p-4">
@@ -29,24 +35,29 @@ const ModalDelete: NextPage<Props> = ({ show, onClickOverlay, onDelete, isLoadin
         <div className={'mb-4'}>
           {children}
         </div>
-        <div className={'mb-4'}>
-          <div className='mb-2'>Please type <span className={'font-bold'}>{verify}</span> to confirm</div>
-          <input
-            type="text"
-            className='w-full h-10 px-2 select-all'
-            value={verifyValue}
-            onChange={e => setVerifyValue(e.target.value)}
-          />
-        </div>
-        <div className={'flex'}>
-          <button
-            className='px-4 py-2 w-full flex justify-center items-center bg-rose-500 disabled:bg-rose-300 disabled:cursor-not-allowed duration-300 rounded-md text-gray-50 font-semibold'
-            onClick={() => onDelete()}
-            disabled={isLoading || verifyValue !== verify}
-          >
-            {isLoading ? <AiOutlineLoading3Quarters className={'animate-spin'} size={'1.2rem'} /> : 'Delete'}
-          </button>
-        </div>
+        <form action={''} onSubmit={e => {
+          e.preventDefault();
+          onDelete();
+        }}>
+          <div className={'mb-4'}>
+            <div className='mb-2'>Please type <span className={'font-bold'}>{verify}</span> to confirm</div>
+            <input
+              type="text"
+              className='w-full h-10 px-2 select-all'
+              value={verifyValue}
+              onChange={e => setVerifyValue(e.target.value)}
+            />
+          </div>
+          <div className={'flex'}>
+            <button
+              type={'submit'}
+              className='px-4 py-2 w-full flex justify-center items-center bg-rose-500 disabled:bg-rose-300 disabled:cursor-not-allowed duration-300 rounded-md text-gray-50 font-semibold'
+              disabled={isLoading || verifyValue !== verify}
+            >
+              {isLoading ? <AiOutlineLoading3Quarters className={'animate-spin'} size={'1.2rem'} /> : 'Delete'}
+            </button>
+          </div>
+        </form>
       </div>
     </Modal>
   );

@@ -10,6 +10,7 @@ import { NextPage, GetServerSideProps } from "next";
 import Head from "next/head";
 import { useEffect, useState } from "react";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
+import { PiFolderOpenDuotone } from 'react-icons/pi';
 import { RiPencilLine } from "react-icons/ri";
 
 
@@ -65,16 +66,29 @@ const Index: NextPage<Props> = ({ id }) => {
             { name: product?.name || id, path: '' },
           ]}
         />
-        <div className='bg-white mb-20 p-4 rounded shadow'>
+        <div className=''>
           {isLoading ? (
-            <div className="flex justify-center items-center">
-              <div className="py-20">
-                <AiOutlineLoading3Quarters className={'animate-spin'} size={'5rem'} />
+            <div className='bg-white mb-20 p-4 rounded shadow'>
+              <div className="flex justify-center items-center">
+                <div className="py-20">
+                  <AiOutlineLoading3Quarters className={'animate-spin'} size={'5rem'} />
+                </div>
+              </div>
+            </div>
+          ) : !product ? (
+            <div className='bg-white mb-20 p-4 rounded shadow'>
+              <div className='w-full text-center my-16'>
+                <div className='flex justify-center items-center mb-4'>
+                  <PiFolderOpenDuotone size={'4rem'} className={'text-gray-500'} />
+                </div>
+                <div>
+                  {'No data found'}
+                </div>
               </div>
             </div>
           ) : (
             <div>
-              <div className="mb-4">
+              <div className='bg-white mb-20 p-4 rounded shadow mb-4'>
                 <div className="text-xl flex justify-between items-center mb-2">
                   <div>Product</div>
                   <button
@@ -87,7 +101,6 @@ const Index: NextPage<Props> = ({ id }) => {
                     <div>Update Product</div>
                   </button>
                 </div>
-                <hr className="my-4 border-2" />
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-2 md:gap-4">
                   <div className="">{'Name'}</div>
                   <div className="col-span-1 md:col-span-3 mb-4 md:mb-0 text-gray-600">{product?.name}</div>
@@ -105,9 +118,11 @@ const Index: NextPage<Props> = ({ id }) => {
                   <div className="col-span-1 md:col-span-3 mb-4 md:mb-0 text-gray-600">{displayDateTime(product?.updateDt)}</div>
                 </div>
               </div>
-              {/* <div className="hidden md:flex mb-4 p-4 whitespace-pre-wrap">
-                {JSON.stringify(product, null, 4)}
-              </div> */}
+              {process.env.DEBUG === 'true' && (
+                <div className="hidden md:flex mb-4 p-4 whitespace-pre-wrap">
+                  {JSON.stringify(product, null, 4)}
+                </div>
+              )}
             </div>
           )}
         </div>

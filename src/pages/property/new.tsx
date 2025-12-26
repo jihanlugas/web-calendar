@@ -30,12 +30,11 @@ const schemaUnit = Yup.object().shape({
 const schema = Yup.object().shape({
   name: Yup.string().required('Required field'),
   description: Yup.string(),
-  price: Yup.number().nullable().required('Required field'),
   units: Yup
     .array()
     .of(schemaUnit)
-    .min(1, 'At least one property group is required')
-    .required('Property groups are required'),
+    .min(1, 'At least one Unit is required')
+    .required('Units are required'),
 });
 
 
@@ -43,7 +42,6 @@ const initFormikValue: CreateProperty = {
   companyId: '',
   name: '',
   description: '',
-  price: '',
   units: [{
     name: "",
     description: "",
@@ -51,7 +49,7 @@ const initFormikValue: CreateProperty = {
 }
 
 
-const New: NextPage<Props> = ( {loginUser} ) => {
+const New: NextPage<Props> = ({ loginUser }) => {
 
   const router = useRouter();
 
@@ -126,14 +124,6 @@ const New: NextPage<Props> = ( {loginUser} ) => {
                           placeholder={'Description'}
                         />
                       </div>
-                      <div className="">
-                        <TextFieldNumber
-                          label={'Price'}
-                          name={'price'}
-                          placeholder={'Price'}
-                          required
-                        />
-                      </div>
                     </div>
                     <div className="mb-4">
                       <FieldArray name="units">
@@ -141,7 +131,7 @@ const New: NextPage<Props> = ( {loginUser} ) => {
                           return (
                             <div>
                               <div className="flex justify-between items-center">
-                                <div className="text-lg">Property Group</div>
+                                <div className="text-lg">Unit</div>
                                 <button type="button" className="h-10 w-10 ease-in-out flex justify-center items-center rounded duration-300 shadow hover:scale-105 text-primary-500 hover:text-primary-600" onClick={() => push({ name: "", description: "" })}>
                                   <BiPlus className='' size={'1.5rem'} />
                                 </button>
@@ -175,12 +165,11 @@ const New: NextPage<Props> = ( {loginUser} ) => {
                         loading={isPending}
                       />
                     </div>
-                    <div className="hidden md:flex mb-4 p-4 whitespace-pre-wrap">
-                      {JSON.stringify(values, null, 4)}
-                    </div>
-                    {/* <div className="hidden md:flex mb-4 p-4 whitespace-pre-wrap">
-                      {JSON.stringify(errors, null, 4)}
-                    </div> */}
+                    {process.env.DEBUG === 'true' && (
+                      <div className="hidden md:flex mb-4 p-4 whitespace-pre-wrap">
+                        {JSON.stringify(values, null, 4)}
+                      </div>
+                    )}
                   </Form>
                 )
               }}

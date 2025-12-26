@@ -45,7 +45,7 @@ src/
 ## Core Functionality
 - **Dashboard View**: Main timeline interface showing events across all properties
 - **Event Management**: Create, update, and move events on the timeline
-- **Property Groups**: Organize timeline into property-specific groups
+- **Units**: Organize timeline into property-specific groups
 - **Property Pricing**: Configure pricing rules based on time periods and weekdays
 - **Time Navigation**: Zoom and pan through different time periods
 - **WebSocket Communication**: Real-time event updates and synchronization

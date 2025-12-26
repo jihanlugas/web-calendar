@@ -194,7 +194,7 @@ const ModalEventSummary = ({ event, property }) => {
           <div className={'col-span-3'}>{event.propertyName || '-'}</div>
         </div>
         <div className="grid grid-cols-4 gap-4 mb-2">
-          <div className={''}>{'Property Group'}</div>
+          <div className={''}>{'Unit'}</div>
           <div className={'col-span-3'}>{event.unitName || '-'}</div>
         </div>
         <div className="grid grid-cols-4 gap-4 mb-2">
@@ -433,12 +433,12 @@ const ModalEventForm = ({ onClickOverlay, event, units, setItems }) => {
                 </div>
                 <div className="">
                   <DropdownField
-                    label={"Property Group"}
+                    label={"Unit"}
                     name={"unitId"}
                     items={units}
                     keyValue={"id"}
                     keyLabel={"name"}
-                    placeholder="Select Property Group"
+                    placeholder="Select Unit"
                     placeholderValue={""}
                     required
                   />
@@ -490,9 +490,11 @@ const ModalEventForm = ({ onClickOverlay, event, units, setItems }) => {
                   </div>
                 )}
               </div>
-              {/* <div className="hidden md:flex mb-4 p-4 whitespace-pre-wrap">
-                {JSON.stringify(values, null, 4)}
-              </div> */}
+              {process.env.DEBUG === 'true' && (
+                <div className="hidden md:flex mb-4 p-4 whitespace-pre-wrap">
+                  {JSON.stringify(values, null, 4)}
+                </div>
+              )}
             </Form>
           );
         }}
