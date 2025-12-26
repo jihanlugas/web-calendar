@@ -255,7 +255,7 @@ const Index: NextPage<Props> = ({ id }) => {
                 <div className="">
                   {property?.propertyprices ? (
                     <div className="">
-                      {property?.propertyprices.sort((a, b) => b.priority - a.priority).map((propertyprice, key) => (
+                      {property?.propertyprices.sort((a, b) => a.priority - b.priority).map((propertyprice, key) => (
                         <div key={key} className="flex items-center border-b-2 pb-2">
                           <div className="flex-1">{displayDays(propertyprice.weekdays)}</div>
                           <div className="flex-1">{displayMoney(propertyprice.price)}</div>
