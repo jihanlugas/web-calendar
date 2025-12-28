@@ -12,15 +12,32 @@ import notif from "@/utils/notif";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { NextPage, GetServerSideProps } from "next";
 import Head from "next/head";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { BiPlus, BiMove } from "react-icons/bi";
 import { IoClose } from "react-icons/io5";
 import { PiFolderOpenDuotone } from 'react-icons/pi';
 import { RiPencilLine } from "react-icons/ri";
 import { Tooltip } from "react-tooltip";
-import { DndProvider, useDrag, useDrop } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+} from '@dnd-kit/sortable';
+import { restrictToVerticalAxis, restrictToParentElement } from '@dnd-kit/modifiers';
+
+import { CSS } from '@dnd-kit/utilities';
 
 
 type Props = {
@@ -77,13 +94,32 @@ const Index: NextPage<Props> = ({ id }) => {
     setShowModalUpdateProperty(!showModalUpdateProperty);
   };
 
-  // Function to move prices in the list
-  const movePrice = (fromIndex: number, toIndex: number) => {
-    const updatedPrices = [...propertyPrices];
-    const [movedItem] = updatedPrices.splice(fromIndex, 1);
-    updatedPrices.splice(toIndex, 0, movedItem);
-    setHasChanges(true)
-    setPropertyPrices(updatedPrices);
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5, // 🔥 penting untuk mobile
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragStart = () => {
+    document.body.style.overflow = 'hidden';
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    document.body.style.overflow = '';
+
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = propertyPrices.findIndex(i => i.id === active.id);
+    const newIndex = propertyPrices.findIndex(i => i.id === over.id);
+
+    setPropertyPrices(arrayMove(propertyPrices, oldIndex, newIndex));
+    setHasChanges(true);
   };
 
   // Function to save the new order
@@ -158,87 +194,42 @@ const Index: NextPage<Props> = ({ id }) => {
     }
   }, [data])
 
-  // Draggable component for property prices
-  const DraggablePriceItem = ({ price, index, movePrice }: { price: PropertypriceView, index: number, movePrice: (fromIndex: number, toIndex: number) => void }) => {
-    const ref = useRef<HTMLDivElement>(null);
+  // Sortable component for property prices using dnd-kit
+  const SortablePriceItem = ({ price }: { price: PropertypriceView }) => {
+    const {
+      attributes,
+      listeners,
+      setNodeRef,
+      transform,
+      transition,
+      isDragging,
+    } = useSortable({ id: price.id });
 
-    const [{ isDragging }, drag] = useDrag({
-      type: 'price',
-      item: { index },
-      collect: (monitor) => ({
-        isDragging: monitor.isDragging(),
-      }),
-    });
-
-    const [, drop] = useDrop({
-      accept: 'price',
-      hover(item: { index: number }, monitor) {
-        if (!ref.current) {
-          return;
-        }
-        const dragIndex = item.index;
-        const hoverIndex = index;
-
-        // Don't replace items with themselves
-        if (dragIndex === hoverIndex) {
-          return;
-        }
-
-        // Determine rectangle on screen
-        const hoverBoundingRect = ref.current?.getBoundingClientRect();
-
-        // Get vertical middle
-        const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
-
-        // Determine mouse position
-        const clientOffset = monitor.getClientOffset();
-
-        // Get pixels to the top
-        const hoverClientY = clientOffset.y - hoverBoundingRect.top;
-
-        // Only perform the move when the mouse has crossed half of the items height
-        // When dragging downwards, only move when the cursor is below 50%
-        // When dragging upwards, only move when the cursor is above 50%
-
-        // Dragging downwards
-        if (dragIndex < hoverIndex && hoverClientY < hoverMiddleY) {
-          return;
-        }
-
-        // Dragging upwards
-        if (dragIndex > hoverIndex && hoverClientY > hoverMiddleY) {
-          return;
-        }
-
-        // Time to actually perform the action
-        movePrice(dragIndex, hoverIndex);
-
-        // Note: we're mutating the monitor item here!
-        // Generally it's better to avoid mutations,
-        // but it's good here for the sake of performance
-        // to avoid expensive index searches.
-        item.index = hoverIndex;
-      },
-    });
-
-    drag(drop(ref));
+    const style = {
+      transform: CSS.Transform.toString(transform),
+      transition,
+    };
 
     return (
       <div
-        ref={ref}
-        className={`flex items-center border-2 p-2 mb-2 ${isDragging ? 'opacity-50' : 'opacity-100'}`}
-        style={{ cursor: 'move' }}
+        ref={setNodeRef}
+        style={style}
+        className={`flex items-center border-2 p-2 mb-2 ${isDragging
+          ? 'opacity-75 shadow-lg z-10 bg-white'
+          : 'opacity-100'
+          }`}
       >
         <div className="flex-1">{displayDays(price.weekdays)}</div>
         <div className="flex-1">{displayMoney(price.price)}</div>
         <div className="ml-auto flex">
-          <button
-            className='w-10 h-10 rounded text-gray-500 hover:text-gray-600 font-bold flex justify-center items-center duration-300 hover:scale-105 text-base cursor-move'
-            type="button"
+          <div
+            {...attributes}
+            {...listeners}
+            className="w-10 h-10 flex justify-center items-center cursor-grab active:cursor-grabbing touch-none text-gray-500 hover:text-gray-700"
             title='Drag to reorder'
           >
             <BiMove className='' size={'1.5rem'} />
-          </button>
+          </div>
           <button
             className='w-10 h-10 rounded text-amber-500 hover:text-amber-600 font-bold flex justify-center items-center duration-300 hover:scale-105 text-base'
             type="button"
@@ -409,51 +400,99 @@ const Index: NextPage<Props> = ({ id }) => {
                 </div>
                 <div className="">
                   {property?.propertyprices ? (
-                    <DndProvider backend={HTML5Backend}>
-                      <div className="">
-                        {propertyPrices.map((propertyprice, index) => (
-                          <DraggablePriceItem
-                            key={propertyprice.id}
-                            price={propertyprice}
-                            index={index}
-                            movePrice={movePrice}
-                          />
-                        ))}
-                      </div>
-                      {hasChanges && (
-                        <div className="mt-4 flex justify-end">
-                          <div className='ml-4'>
-                            <button
-                              className='w-60 h-10 bg-rose-500 hover:bg-rose-600 rounded text-gray-50 font-bold flex justify-center items-center duration-300 hover:scale-105 text-base'
-                              type="button"
-                              title='Save Sort Order'
-                              onClick={cancelSortOrder}
-                              disabled={isPendingSort}
+                    (() => {
+                      try {
+                        return (
+                          <DndContext
+                            sensors={sensors}
+                            collisionDetection={closestCenter}
+                            onDragEnd={handleDragEnd}
+                            onDragStart={handleDragStart}
+                            modifiers={[restrictToVerticalAxis, restrictToParentElement]}
+                          >
+                            <SortableContext
+                              items={propertyPrices.map((item) => item.id)}
+                              strategy={verticalListSortingStrategy}
                             >
-                              {isPendingSort ? (
-                                <AiOutlineLoading3Quarters className={'animate-spin mr-2'} size={'1.5rem'} />
-                              ) : null}
-                              Cancel Order
-                            </button>
+                              <div className="">
+                                {propertyPrices.map((propertyprice) => (
+                                  <SortablePriceItem
+                                    key={propertyprice.id}
+                                    price={propertyprice}
+                                  />
+                                ))}
+                              </div>
+                            </SortableContext>
+                            {hasChanges && (
+                              <div className="mt-4 flex justify-end">
+                                <div className='ml-4'>
+                                  <button
+                                    className='w-60 h-10 bg-rose-500 hover:bg-rose-600 rounded text-gray-50 font-bold flex justify-center items-center duration-300 hover:scale-105 text-base'
+                                    type="button"
+                                    title='Save Sort Order'
+                                    onClick={cancelSortOrder}
+                                    disabled={isPendingSort}
+                                  >
+                                    {isPendingSort ? (
+                                      <AiOutlineLoading3Quarters className={'animate-spin mr-2'} size={'1.5rem'} />
+                                    ) : null}
+                                    Cancel Order
+                                  </button>
+                                </div>
+                                <div className='ml-4'>
+                                  <button
+                                    className='w-60 h-10 bg-primary-500 hover:bg-primary-600 rounded text-gray-50 font-bold flex justify-center items-center duration-300 hover:scale-105 text-base'
+                                    type="button"
+                                    title='Save Sort Order'
+                                    onClick={saveSortOrder}
+                                    disabled={isPendingSort}
+                                  >
+                                    {isPendingSort ? (
+                                      <AiOutlineLoading3Quarters className={'animate-spin mr-2'} size={'1.5rem'} />
+                                    ) : null}
+                                    Save Order
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                          </DndContext>
+                        );
+                      } catch (error) {
+                        // Fallback to non-draggable list if dnd-kit fails
+                        console.error('Dnd-kit error:', error);
+                        return (
+                          <div className="">
+                            {propertyPrices.map((propertyprice) => (
+                              <div
+                                key={propertyprice.id}
+                                className='flex items-center border-2 p-2 mb-2'
+                              >
+                                <div className="flex-1">{displayDays(propertyprice.weekdays)}</div>
+                                <div className="flex-1">{displayMoney(propertyprice.price)}</div>
+                                <div className="ml-auto flex">
+                                  <button
+                                    className='w-10 h-10 rounded text-amber-500 hover:text-amber-600 font-bold flex justify-center items-center duration-300 hover:scale-105 text-base'
+                                    type="button"
+                                    title='Update Price'
+                                    onClick={() => toggleModalUnit(propertyprice.id)}
+                                  >
+                                    <RiPencilLine className='' size={'1.5rem'} />
+                                  </button>
+                                  <button
+                                    className='w-10 h-10 rounded text-rose-500 hover:text-rose-600 font-bold flex justify-center items-center duration-300 hover:scale-105 text-base'
+                                    type="button"
+                                    title='Delete Price'
+                                    onClick={() => handleClickDelete(propertyprice.id, "delete")}
+                                  >
+                                    <IoClose className='' size={'1.5rem'} />
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
                           </div>
-                          <div className='ml-4'>
-                            <button
-                              className='w-60 h-10 bg-primary-500 hover:bg-primary-600 rounded text-gray-50 font-bold flex justify-center items-center duration-300 hover:scale-105 text-base'
-                              type="button"
-                              title='Save Sort Order'
-                              onClick={saveSortOrder}
-                              disabled={isPendingSort}
-                            >
-                              {isPendingSort ? (
-                                <AiOutlineLoading3Quarters className={'animate-spin mr-2'} size={'1.5rem'} />
-                              ) : null}
-                              Save Order
-                            </button>
-                          </div>
-                        </div>
-
-                      )}
-                    </DndProvider>
+                        );
+                      }
+                    })()
                   ) : (
                     <div className='w-full text-center my-16'>
                       <div className='flex justify-center items-center mb-4'>
@@ -466,7 +505,7 @@ const Index: NextPage<Props> = ({ id }) => {
                   )}
                 </div>
               </div>
-              {process.env.DEBUG === 'true' && (
+              {process.env.DEBUG === 'truee' && (
                 <div className="hidden md:flex mb-4 p-4 whitespace-pre-wrap">
                   {JSON.stringify(property, null, 4)}
                 </div>
