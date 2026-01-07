@@ -36,8 +36,8 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { restrictToVerticalAxis, restrictToParentElement } from '@dnd-kit/modifiers';
-
 import { CSS } from '@dnd-kit/utilities';
+import ModalPropertyprice from '@/components/modal/modal-propertyprice';
 
 
 type Props = {
@@ -49,10 +49,12 @@ const Index: NextPage<Props> = ({ id }) => {
 
   const [property, setProperty] = useState<PropertyView>(null)
   const [selectedPropertyId, setSelectedPropertyId] = useState<string>('')
-  const [selectedPropertyGroupId, setSelectedPropertyGroupId] = useState<string>('')
+  const [selectedUnitId, setSelectedUnitId] = useState<string>('')
+  const [selectedPropertypriceId, setSelectedPropertypriceId] = useState<string>('')
 
   const [showModalUpdateProperty, setShowModalUpdateProperty] = useState<boolean>(false);
   const [showModalUnit, setShowModalUnit] = useState<boolean>(false);
+  const [showModalPropertyprice, setShowModalPropertyprice] = useState<boolean>(false);
 
   const [showModalDelete, setShowModalDelete] = useState<boolean>(false);
   const [deleteId, setDeleteId] = useState<string>('');
@@ -60,6 +62,10 @@ const Index: NextPage<Props> = ({ id }) => {
 
   const [propertyPrices, setPropertyPrices] = useState<PropertypriceView[]>([]);
   const [hasChanges, setHasChanges] = useState<boolean>(false);
+
+  const fixedPrices = propertyPrices.filter(p => p.priority === 1);
+  const sortablePrices = propertyPrices.filter(p => p.priority !== 1);
+
 
   const preloads = 'Units,Propertyprices'
   const { data, isLoading, refetch } = useQuery({
@@ -106,19 +112,20 @@ const Index: NextPage<Props> = ({ id }) => {
   );
 
   const handleDragStart = () => {
-    document.body.style.overflow = 'hidden';
+    // document.body.style.overflow = 'hidden';
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
-    document.body.style.overflow = '';
-
     const { active, over } = event;
-    if (!over || active.id === over.id) return;
+    if (!over) return;
 
-    const oldIndex = propertyPrices.findIndex(i => i.id === active.id);
-    const newIndex = propertyPrices.findIndex(i => i.id === over.id);
+    const oldIndex = sortablePrices.findIndex(i => i.id === active.id);
+    const newIndex = sortablePrices.findIndex(i => i.id === over.id);
 
-    setPropertyPrices(arrayMove(propertyPrices, oldIndex, newIndex));
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const newOrder = arrayMove(sortablePrices, oldIndex, newIndex);
+    setPropertyPrices([...fixedPrices, ...newOrder]);
     setHasChanges(true);
   };
 
@@ -142,15 +149,23 @@ const Index: NextPage<Props> = ({ id }) => {
   // Function to save the new order
   const cancelSortOrder = () => {
     setHasChanges(false)
-    setPropertyPrices([...property.propertyprices].sort((a, b) => a.priority - b.priority));
+    setPropertyPrices([...property.propertyprices].sort((a, b) => b.priority - a.priority));
   };
 
   const toggleModalUnit = (id = '', refresh = false) => {
     if (refresh) {
       refetch()
     }
-    setSelectedPropertyGroupId(id)
+    setSelectedUnitId(id)
     setShowModalUnit(!showModalUnit);
+  };
+
+  const toggleModalPropertyprice = (id = '', refresh = false) => {
+    if (refresh) {
+      refetch()
+    }
+    setSelectedUnitId(id)
+    setShowModalPropertyprice(!showModalPropertyprice);
   };
 
   const toggleModalDelete = (id = '', verify = '') => {
@@ -187,7 +202,7 @@ const Index: NextPage<Props> = ({ id }) => {
       if (data?.status) {
         setProperty(data.payload)
         if (data.payload.propertyprices) {
-          setPropertyPrices([...data.payload.propertyprices].sort((a, b) => a.priority - b.priority));
+          setPropertyPrices([...data.payload.propertyprices].sort((a, b) => b.priority - a.priority));
           setHasChanges(false)
         }
       }
@@ -234,7 +249,7 @@ const Index: NextPage<Props> = ({ id }) => {
             className='w-10 h-10 rounded text-amber-500 hover:text-amber-600 font-bold flex justify-center items-center duration-300 hover:scale-105 text-base'
             type="button"
             title='Update Price'
-            onClick={() => toggleModalUnit(price.id)}
+            onClick={() => toggleModalPropertyprice(price.id)}
           >
             <RiPencilLine className='' size={'1.5rem'} />
           </button>
@@ -265,7 +280,13 @@ const Index: NextPage<Props> = ({ id }) => {
         show={showModalUnit}
         onClickOverlay={toggleModalUnit}
         property={property}
-        id={selectedPropertyGroupId}
+        id={selectedUnitId}
+      />
+      <ModalPropertyprice
+        show={showModalPropertyprice}
+        onClickOverlay={toggleModalPropertyprice}
+        property={property}
+        id={selectedUnitId}
       />
       <ModalDeleteVerify
         show={showModalDelete}
@@ -396,7 +417,16 @@ const Index: NextPage<Props> = ({ id }) => {
               </div>
               <div className='bg-white p-4 rounded shadow mb-4'>
                 <div className="text-xl flex justify-between items-center mb-4">
-                  <div>Prices</div>
+                  <div>Price</div>
+                  <button
+                    className='w-60 h-10 bg-primary-500 hover:bg-primary-600 rounded text-gray-50 font-bold flex justify-center items-center duration-300 hover:scale-105 text-base'
+                    type="button"
+                    title='Create Price'
+                    onClick={() => toggleModalPropertyprice()}
+                  >
+                    <BiPlus className='mr-2' size={'1.5rem'} />
+                    <div>Create Price</div>
+                  </button>
                 </div>
                 <div className="">
                   {property?.propertyprices ? (
@@ -411,18 +441,36 @@ const Index: NextPage<Props> = ({ id }) => {
                             modifiers={[restrictToVerticalAxis, restrictToParentElement]}
                           >
                             <SortableContext
-                              items={propertyPrices.map((item) => item.id)}
+                              items={sortablePrices.map((item) => item.id)}
                               strategy={verticalListSortingStrategy}
                             >
-                              <div className="">
-                                {propertyPrices.map((propertyprice) => (
-                                  <SortablePriceItem
-                                    key={propertyprice.id}
-                                    price={propertyprice}
-                                  />
-                                ))}
-                              </div>
+                              {sortablePrices.map((propertyprice) => (
+                                <SortablePriceItem
+                                  key={propertyprice.id}
+                                  price={propertyprice}
+                                />
+                              ))}
                             </SortableContext>
+                            {fixedPrices.map(price => (
+                              <div
+                                key={price.id}
+                                className="flex items-center border-2 p-2 mb-2 bg-gray-100"
+                              >
+                                <div className="flex-1">{displayDays(price.weekdays)}</div>
+                                <div className="flex-1">{displayMoney(price.price)}</div>
+
+                                <div className="ml-auto w-10 h-10 flex items-center justify-center opacity-40 cursor-not-allowed">
+                                  <BiMove size="1.5rem" />
+                                </div>
+
+                                <button
+                                  className="w-10 h-10 text-amber-500"
+                                  onClick={() => toggleModalPropertyprice(price.id)}
+                                >
+                                  <RiPencilLine size="1.5rem" />
+                                </button>
+                              </div>
+                            ))}
                             {hasChanges && (
                               <div className="mt-4 flex justify-end">
                                 <div className='ml-4'>
@@ -474,7 +522,7 @@ const Index: NextPage<Props> = ({ id }) => {
                                     className='w-10 h-10 rounded text-amber-500 hover:text-amber-600 font-bold flex justify-center items-center duration-300 hover:scale-105 text-base'
                                     type="button"
                                     title='Update Price'
-                                    onClick={() => toggleModalUnit(propertyprice.id)}
+                                    onClick={() => toggleModalPropertyprice(propertyprice.id)}
                                   >
                                     <RiPencilLine className='' size={'1.5rem'} />
                                   </button>
@@ -505,7 +553,7 @@ const Index: NextPage<Props> = ({ id }) => {
                   )}
                 </div>
               </div>
-              {process.env.DEBUG === 'truee' && (
+              {process.env.DEBUG === 'true' && (
                 <div className="hidden md:flex mb-4 p-4 whitespace-pre-wrap">
                   {JSON.stringify(property, null, 4)}
                 </div>

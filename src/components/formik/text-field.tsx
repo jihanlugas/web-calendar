@@ -15,13 +15,13 @@ const TextField: NextPage<Props> = ({ name, type, field = false, ...props }) => 
 	const hasError = meta.touched && meta.error;
 
 	const className = [
-  'w-full',
-  'h-10',
-  'px-2',
-  'select-all',
-  hasError && '!border-rose-400',
-  props.className || ''
-].filter(Boolean).join(' ');
+		'w-full',
+		'h-10',
+		'px-2',
+		'select-all',
+		hasError && '!border-rose-400',
+		props.className || ''
+	].filter(Boolean).join(' ');
 
 	return (
 		<div className={'flex flex-col w-full relative pb-6'}>

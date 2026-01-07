@@ -12,6 +12,10 @@ import TextField from "@/components/formik/text-field";
 import TextAreaField from "@/components/formik/text-area-field";
 import ButtonSubmit from "@/components/formik/button-submit";
 import { PropertyView } from "@/types/property";
+import { weekdays } from "moment";
+import TextFieldNumber from "../formik/text-field-number";
+import CheckboxField from "../formik/checkbox-field";
+import { DAYMAP } from "@/utils/constant";
 
 type Props = {
   show: boolean;
@@ -23,20 +27,23 @@ type Props = {
 const schema = Yup.object().shape({
   companyId: Yup.string(),
   propertyId: Yup.string(),
-  name: Yup.string().required('Required field'),
-  description: Yup.string().max(200, 'Must be 200 characters or less'),
+  price: Yup.number()
+    .typeError('Field be a number')
+    .required('Required field'),
+  weekdays: Yup.array().of(Yup.number()),
 });
 
 const defaultInitFormikValue = {
   companyId: '',
   propertyId: '',
-  name: '',
-  description: '',
+  price: '',
+  weekdays: [],
 }
 
-const ModalEditUnit: NextPage<Props> = ({ show, onClickOverlay, id, property }) => {
+const ModalPropertyprice: NextPage<Props> = ({ show, onClickOverlay, id, property }) => {
 
   const queryClient = useQueryClient()
+  console.log('modal queryClient', queryClient)
 
   const [selectedId, setSelectedId] = useState<string>('')
 
@@ -44,25 +51,25 @@ const ModalEditUnit: NextPage<Props> = ({ show, onClickOverlay, id, property }) 
 
   const preloads = 'Company'
   const { data, isLoading } = useQuery({
-    queryKey: ['unit', selectedId, preloads],
+    queryKey: ['propertyprice', selectedId, preloads],
     queryFn: ({ queryKey }) => {
       const [, selectedId] = queryKey;
-      return selectedId ? Api.get('/unit/' + selectedId, { preloads }) : null
+      return selectedId ? Api.get('/propertyprice/' + selectedId, { preloads }) : null
     },
   })
 
   const { mutate: mutateCreate, isPending: isPendingCreate } = useMutation({
-    mutationKey: ['unit', 'create'],
-    mutationFn: (val: FormikValues) => Api.post('/unit', val),
+    mutationKey: ['propertyprice', 'create'],
+    mutationFn: (val: FormikValues) => Api.post('/propertyprice', val),
   });
 
   const { mutate: mutateUpdate, isPending: isPendingUpdate } = useMutation({
-    mutationKey: ['unit', 'update', selectedId],
-    mutationFn: (val: FormikValues) => Api.put('/unit/' + selectedId, val),
+    mutationKey: ['propertyprice', 'update', selectedId],
+    mutationFn: (val: FormikValues) => Api.put('/propertyprice/' + selectedId, val),
   });
 
   const handleSubmit = async (values, formikHelpers) => {
-    console.log('handleSubmit', handleSubmit)
+    values.price = parseFloat(values.price as string) || 0
     if (selectedId === '') {
       values.companyId = property.companyId
       values.propertyId = property.id
@@ -111,8 +118,8 @@ const ModalEditUnit: NextPage<Props> = ({ show, onClickOverlay, id, property }) 
         setInitFormikValue({
           companyId: data.payload.companyId,
           propertyId: data.payload.propertyId,
-          name: data.payload.name,
-          description: data.payload.description,
+          price: data.payload.price,
+          weekdays: data.payload.weekdays,
         })
       } else {
         setInitFormikValue(defaultInitFormikValue)
@@ -130,10 +137,10 @@ const ModalEditUnit: NextPage<Props> = ({ show, onClickOverlay, id, property }) 
   }, [show, id])
 
   return (
-    <Modal show={show} onClickOverlay={onClickOverlay} layout={'sm:max-w-lg'}>
+    <Modal show={show} onClickOverlay={onClickOverlay} layout={'sm:max-w-2xl'}>
       <div className="p-4">
         <div className={'text-xl mb-4 flex justify-between items-center'}>
-          <div>{selectedId === '' ? 'Create Unit' : 'Update Unit'}</div>
+          <div>{selectedId === '' ? 'Create Price' : 'Update Price'}</div>
           <button type="button" onClick={() => onClickOverlay('', true)} className={'h-10 w-10 flex justify-center items-center duration-300 rounded shadow text-rose-500 hover:scale-110'}>
             <IoClose size={'1.5rem'} className="text-rose-500" />
           </button>
@@ -154,24 +161,37 @@ const ModalEditUnit: NextPage<Props> = ({ show, onClickOverlay, id, property }) 
                 enableReinitialize={true}
                 onSubmit={(values, formikHelpers) => handleSubmit(values, formikHelpers)}
               >
-                {({ }) => {
+                {({ values, setFieldValue }) => {
                   return (
                     <Form noValidate={true}>
                       <div className="mb-4">
-                        <TextField
-                          label={'Unit Name'}
-                          name={'name'}
-                          type={'text'}
-                          placeholder={'Unit Name'}
-                          required
+                        <TextFieldNumber
+                          label={'Price'}
+                          name={`price`}
+                          placeholder={'100...'}
                         />
                       </div>
                       <div className="mb-4">
-                        <TextAreaField
-                          label={'Description'}
-                          name={'description'}
-                          placeholder={'Description'}
-                        />
+                        {DAYMAP.map((day, index) => (
+                          <div key={index} className="mb-2">
+                            <CheckboxField
+                              label={day}
+                              name="weekdays"
+                              className="pb-2 pt-2"
+                              value={index}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setFieldValue('weekdays', [...values.weekdays, index].sort((a, b) => a - b));
+                                } else {
+                                  setFieldValue(
+                                    'weekdays',
+                                    values.weekdays.filter((v: number) => v !== index)
+                                  );
+                                }
+                              }}
+                            />
+                          </div>
+                        ))}
                       </div>
                       <div className="mb-4">
                         <ButtonSubmit
@@ -180,6 +200,11 @@ const ModalEditUnit: NextPage<Props> = ({ show, onClickOverlay, id, property }) 
                           loading={isPendingCreate || isPendingUpdate}
                         />
                       </div>
+                      {process.env.DEBUG === 'true' && (
+                        <div className="hidden md:flex mb-4 p-4 whitespace-pre-wrap">
+                          {JSON.stringify(values, null, 4)}
+                        </div>
+                      )}
                     </Form>
                   )
                 }}
@@ -192,4 +217,4 @@ const ModalEditUnit: NextPage<Props> = ({ show, onClickOverlay, id, property }) 
   );
 }
 
-export default ModalEditUnit;
+export default ModalPropertyprice;

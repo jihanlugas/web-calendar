@@ -3,7 +3,7 @@ import { FastField, ErrorMessage, useField } from 'formik';
 import React from 'react';
 import { IoClose } from 'react-icons/io5';
 
-interface Props extends React.HTMLProps<HTMLInputElement> {
+interface Props extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string
   name: string
   handleClear?: (setFieldValue) => void

@@ -10,7 +10,7 @@ import { displayDateTime, displayMoney } from "@/utils/formater";
 import { removeEmptyValues } from "@/utils/helper";
 import notif from "@/utils/notif";
 import { isEmptyObject } from "@/utils/validate";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CellContext, ColumnDef } from "@tanstack/react-table";
 import Head from "next/head";
 import Link from "next/link";
@@ -30,6 +30,8 @@ type PropsDropdownMore = {
 
 
 const Index: NextPage<Props> = () => {
+
+  const queryClient = useQueryClient()
 
   const [property, setProperty] = useState<PropertyView[]>([]);
   const [showModalFilter, setShowModalFilter] = useState<boolean>(false);
@@ -168,6 +170,7 @@ const Index: NextPage<Props> = () => {
           notif.success(message);
           setDeleteId('');
           toggleModalDelete();
+          queryClient.invalidateQueries({ queryKey: ['init'] })
           refetch();
         } else {
           notif.error(message);
