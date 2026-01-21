@@ -12,6 +12,7 @@ export declare interface EventView {
   description: string;
   startDt: Moment;
   endDt: Moment;
+  price: number;
   status: string;
   createBy: string;
   createDt: string;

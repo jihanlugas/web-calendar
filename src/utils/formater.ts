@@ -121,5 +121,6 @@ export const displayMoney = (value: number, locales: string = 'in-ID'): string =
 }
 
 export const displayDays = (values: number[]): string => {
+	if (values.length === 7) return 'Everyday';
 	return values.map((val) => DAYMAP[val]).join(', ');
 }

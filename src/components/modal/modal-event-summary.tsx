@@ -82,9 +82,10 @@ const ModalEventSummary: NextPage<Props> = ({ show, onClickOverlay, property, ev
                 <div className={'col-span-3'}>{displayDateTime(event.endDt) || '-'}</div>
               </div>
               <div className="grid grid-cols-4 gap-4 mb-2">
-                <div className={''}>{'Duration'}</div>
-                <div className={'col-span-3'}>{displayDuration(event.startDt, event.endDt) || '-'}</div>
+                <div className={''}>{'Price'}</div>
+                <div className={'col-span-3'}>{displayMoney(event.price)}</div>
               </div>
+              
               {/* <div className="grid grid-cols-4 gap-4 mb-2">
               <div className={''}>{'Billed'}</div>
               <div className={'col-span-3'}>{getBilledHour(event.startDt, event.endDt) + ' hour' || '-'}</div>

@@ -88,7 +88,7 @@ const ModalCreatePropertyPropertyprice: NextPage<Props> = ({ show, onClickOverla
               enableReinitialize={true}
               onSubmit={(values) => handleSubmit(values)}
             >
-              {({ values, setFieldValue }) => {
+              {({ values, errors, setFieldValue }) => {
                 return (
                   <Form noValidate={true}>
                     <div className="mb-4">
@@ -102,9 +102,11 @@ const ModalCreatePropertyPropertyprice: NextPage<Props> = ({ show, onClickOverla
                       {DAYMAP.map((day, index) => (
                         <div key={index} className="mb-2">
                           <CheckboxField
+                            showError={false}
                             label={day}
                             name="weekdays"
                             className="pb-2 pt-2"
+                            disabled={values?.priority === 1}
                             value={index}
                             onChange={(e) => {
                               if (e.target.checked) {
@@ -119,6 +121,7 @@ const ModalCreatePropertyPropertyprice: NextPage<Props> = ({ show, onClickOverla
                           />
                         </div>
                       ))}
+                      {errors.weekdays && <div className="text-rose-500">{errors.weekdays as string}</div>}
                     </div>
                     <div className="mb-4">
                       <ButtonSubmit
