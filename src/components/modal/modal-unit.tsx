@@ -3,7 +3,7 @@ import Modal from "@/components/modal/modal";
 import { NextPage } from "next";
 import * as Yup from 'yup';
 import { useEffect, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Api } from "@/lib/api";
 import notif from "@/utils/notif";
 import { Form, Formik, FormikValues } from "formik";
@@ -35,8 +35,6 @@ const defaultInitFormikValue = {
 }
 
 const ModalEditUnit: NextPage<Props> = ({ show, onClickOverlay, id, property }) => {
-
-  const queryClient = useQueryClient()
 
   const [selectedId, setSelectedId] = useState<string>('')
 
@@ -72,7 +70,6 @@ const ModalEditUnit: NextPage<Props> = ({ show, onClickOverlay, id, property }) 
             formikHelpers.resetForm();
             notif.success(message);
             onClickOverlay('', true)
-            queryClient.invalidateQueries({ queryKey: ['init'] })
           } else if (payload?.listError) {
             formikHelpers.setErrors(payload.listError);
           } else {
@@ -90,7 +87,6 @@ const ModalEditUnit: NextPage<Props> = ({ show, onClickOverlay, id, property }) 
             formikHelpers.resetForm();
             notif.success(message);
             onClickOverlay('', true)
-            queryClient.invalidateQueries({ queryKey: ['init'] })
           } else if (payload?.listError) {
             formikHelpers.setErrors(payload.listError);
           } else {

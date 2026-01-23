@@ -3,7 +3,7 @@ import Head from 'next/head';
 import MainAuth from '@/components/layout/main-auth';
 import Breadcrumb from '@/components/component/breadcrumb';
 import { useEffect, useState } from 'react';
-import { PropertyView } from '@/types/property';
+import { PageProperty, PropertyView } from '@/types/property';
 import moment from 'moment';
 import Timeline from '@/components/timeline';
 import ModalEventNew from '@/components/modal/modal-event-new';
@@ -11,7 +11,7 @@ import { BiPlus } from 'react-icons/bi';
 import { NextPage } from 'next/types';
 import { LoginUser } from '@/types/auth';
 import { Api } from '@/lib/api';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { EventNew, EventView } from '@/types/event';
 import notif from '@/utils/notif';
 import useWebSocket from '@/utils/hook';
@@ -26,9 +26,24 @@ const Index: NextPage<Props> = ({ loginUser }) => {
   const [properties, setProperties] = useState<PropertyView[]>([]);
 
 
+
+  const [pageRequest, setPageRequest] = useState<PageProperty>({
+    limit: -1,
+    page: 1,
+    preloads: "Propertytimeline,Units",
+  });
+
+
+  const { isLoading, data, refetch } = useQuery({
+    queryKey: ['property', pageRequest],
+    queryFn: ({ queryKey }) => Api.get('/property', queryKey[1] as object),
+  });
+
   useEffect(() => {
-    setProperties(loginUser?.user?.company.properties || [])
-  }, [loginUser])
+    if (data?.status) {
+      setProperties(data.payload.list);
+    }
+  }, [data]);
 
   return (
     <>
@@ -271,8 +286,8 @@ const SingleTimeline: NextPage<SingleTimelineProps> = ({ property }) => {
           onItemDeselect={() => setSelectedItem(null)}
           onCanvasClick={() => setSelectedItem(null)}
           canResize={false}
-          // itemTouchSendsClick={true}
-          // touchEnabled={true}
+        // itemTouchSendsClick={true}
+        // touchEnabled={true}
         />
       </div>
     </>

@@ -3,7 +3,7 @@ import Modal from "@/components/modal/modal";
 import { NextPage } from "next";
 import * as Yup from 'yup';
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Api } from "@/lib/api";
 import notif from "@/utils/notif";
 import { Form, Formik, FormikValues } from "formik";
@@ -46,8 +46,6 @@ const defaultInitFormikValue: CreatePropertyprice = {
 
 const ModalCreatePropertyPropertyprice: NextPage<Props> = ({ show, onClickOverlay, propertyprice, setPropertyprice, dataindex, handleSubmitPropertyprice }) => {
 
-  const queryClient = useQueryClient()
-
   const [selectedId, setSelectedId] = useState<string>('')
 
   const [initFormikValue, setInitFormikValue] = useState(null)
@@ -88,7 +86,7 @@ const ModalCreatePropertyPropertyprice: NextPage<Props> = ({ show, onClickOverla
               enableReinitialize={true}
               onSubmit={(values) => handleSubmit(values)}
             >
-              {({ values, errors, setFieldValue }) => {
+              {({ values, errors, setFieldValue, touched }) => {
                 return (
                   <Form noValidate={true}>
                     <div className="mb-4">
@@ -96,6 +94,7 @@ const ModalCreatePropertyPropertyprice: NextPage<Props> = ({ show, onClickOverla
                         label={'Price'}
                         name={`price`}
                         placeholder={'100...'}
+                        autoFocus={true}
                       />
                     </div>
                     <div className="mb-4">
@@ -121,7 +120,7 @@ const ModalCreatePropertyPropertyprice: NextPage<Props> = ({ show, onClickOverla
                           />
                         </div>
                       ))}
-                      {errors.weekdays && <div className="text-rose-500">{errors.weekdays as string}</div>}
+                      {touched.weekdays && errors.weekdays && <div className="text-rose-500">{errors.weekdays as string}</div>}
                     </div>
                     <div className="mb-4">
                       <ButtonSubmit

@@ -10,7 +10,7 @@ import PageWithLayoutType from "@/types/layout";
 import { CreateProperty, CreatePropertyprice } from "@/types/property";
 import { displayDays, displayMoney } from '@/utils/formater';
 import notif from "@/utils/notif";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { FieldArray, Form, Formik, FormikHelpers, FormikValues } from "formik";
 import Head from "next/head";
 import { useRouter } from "next/router";
@@ -98,7 +98,6 @@ const initFormikValue: CreateProperty = {
 
 
 const New: NextPage<Props> = ({ loginUser }) => {
-  const queryClient = useQueryClient()
   const router = useRouter();
 
   const [showModalPropertyprice, setShowModalPropertyprice] = useState<boolean>(false);
@@ -171,8 +170,6 @@ const New: NextPage<Props> = ({ loginUser }) => {
       onSuccess: ({ status, message, payload }) => {
         if (status) {
           notif.success(message);
-          console.log('fetch init')
-          queryClient.invalidateQueries({ queryKey: ['init'] })
           router.push('/property')
         } else if (payload?.listError) {
           formikHelpers.setErrors(payload.listError);

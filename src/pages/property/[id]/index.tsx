@@ -9,7 +9,7 @@ import { PropertyView } from "@/types/property";
 import { PropertypriceView } from "@/types/propertyprice";
 import { displayDateTime, displayDays, displayMoney } from "@/utils/formater";
 import notif from "@/utils/notif";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { NextPage, GetServerSideProps } from "next";
 import Head from "next/head";
 import { useEffect, useState } from "react";
@@ -45,7 +45,6 @@ type Props = {
 }
 
 const Index: NextPage<Props> = ({ id }) => {
-  const queryClient = useQueryClient()
 
   const [property, setProperty] = useState<PropertyView>(null)
   const [selectedPropertyId, setSelectedPropertyId] = useState<string>('')
@@ -182,7 +181,6 @@ const Index: NextPage<Props> = ({ id }) => {
           setDeleteId('');
           toggleModalDelete();
           notif.success(message);
-          queryClient.invalidateQueries({ queryKey: ['init'] })
         } else {
           notif.error(message);
         }

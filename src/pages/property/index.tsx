@@ -10,7 +10,7 @@ import { displayDateTime, displayMoney } from "@/utils/formater";
 import { removeEmptyValues } from "@/utils/helper";
 import notif from "@/utils/notif";
 import { isEmptyObject } from "@/utils/validate";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { CellContext, ColumnDef } from "@tanstack/react-table";
 import Head from "next/head";
 import Link from "next/link";
@@ -31,9 +31,7 @@ type PropsDropdownMore = {
 
 const Index: NextPage<Props> = () => {
 
-  const queryClient = useQueryClient()
-
-  const [property, setProperty] = useState<PropertyView[]>([]);
+  const [properties, setProperties] = useState<PropertyView[]>([]);
   const [showModalFilter, setShowModalFilter] = useState<boolean>(false);
   const [showModalDelete, setShowModalDelete] = useState<boolean>(false);
   const [deleteId, setDeleteId] = useState<string>('');
@@ -170,7 +168,6 @@ const Index: NextPage<Props> = () => {
           notif.success(message);
           setDeleteId('');
           toggleModalDelete();
-          queryClient.invalidateQueries({ queryKey: ['init'] })
           refetch();
         } else {
           notif.error(message);
@@ -184,7 +181,7 @@ const Index: NextPage<Props> = () => {
 
   useEffect(() => {
     if (data?.status) {
-      setProperty(data.payload.list);
+      setProperties(data.payload.list);
       setPageInfo({
         pageCount: data.payload.totalPage,
         pageSize: data.payload.dataPerPage,
@@ -251,7 +248,7 @@ const Index: NextPage<Props> = () => {
             <div className=''>
               <Table
                 columns={column}
-                data={property}
+                data={properties}
                 setPageRequest={setPageRequest}
                 pageRequest={pageRequest}
                 pageInfo={pageInfo}
