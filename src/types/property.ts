@@ -56,7 +56,9 @@ export declare interface CreatePropertyprice {
   id: string; // for smooth integration with dnd-kit not used in backend
   priority: number;
   price: number | string;
-  weekdays: number[];  
+  startTime: string;
+  endTime: string;
+  weekdays: number[];
 }
 
 export declare interface UpdateProperty {

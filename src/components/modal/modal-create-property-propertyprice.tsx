@@ -17,6 +17,7 @@ import TextFieldNumber from "@/components/formik/text-field-number";
 import CheckboxField from "@/components/formik/checkbox-field";
 import { DAYMAP } from "@/utils/constant";
 import { getUuid } from "@/utils/helper";
+import DateField from "../formik/date-field";
 
 type Props = {
   show: boolean;
@@ -34,13 +35,18 @@ const schema = Yup.object().shape({
   price: Yup.number()
     .typeError('Field be a number')
     .required('Required field'),
+  startTime: Yup.string(),
+  endTime: Yup.string(),
   weekdays: Yup.array().of(Yup.number()).min(1, 'Select at least one day').required('Required field'),
+  
 });
 
 const defaultInitFormikValue: CreatePropertyprice = {
   id: '',
   priority: 0,
   price: '',
+  startTime: null,
+  endTime: null,
   weekdays: [],
 }
 
@@ -95,6 +101,24 @@ const ModalCreatePropertyPropertyprice: NextPage<Props> = ({ show, onClickOverla
                         name={`price`}
                         placeholder={'100...'}
                         autoFocus={true}
+                      />
+                    </div>
+                    <div className="mb-4">
+                      <DateField
+                        label='Start Time'
+                        name='startTime'
+                        dateFormat="HH:mm"
+                        showTimeSelectOnly={true}
+                        handleClear={true}
+                      />
+                    </div>
+                    <div className="mb-4">
+                      <DateField
+                        label='End Time'
+                        name='endTime'
+                        dateFormat="HH:mm"
+                        showTimeSelectOnly={true}
+                        handleClear={true}
                       />
                     </div>
                     <div className="mb-4">

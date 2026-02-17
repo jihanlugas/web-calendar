@@ -132,14 +132,6 @@ const [selectedId, setSelectedId] = useState<string>('')
                         />
                       </div>
                       <div className="mb-4">
-                        <TextFieldNumber
-                          label={'Price'}
-                          name={'price'}
-                          placeholder={'Price'}
-                          required
-                        />
-                      </div>
-                      <div className="mb-4">
                         <ButtonSubmit
                           label={'Save'}
                           disabled={isPending}

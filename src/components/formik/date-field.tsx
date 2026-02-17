@@ -2,16 +2,17 @@ import { NextPage } from 'next';
 import { ErrorMessage, useField, useFormikContext } from 'formik';
 import React from 'react';
 import DatePicker from 'react-datepicker';
+import { DatePickerProps } from 'react-datepicker';
 import { IoClose } from 'react-icons/io5';
 
-interface Props {
-  label?: string;
+type Props = DatePickerProps & {
   name: string;
+  label?: string;
   required?: boolean;
   handleClear?: boolean;
   className?: string;
-  showTimeSelect?: boolean;
-}
+  placeholderText?: string;
+};
 
 const DateField: NextPage<Props> = ({
   label,
@@ -19,7 +20,12 @@ const DateField: NextPage<Props> = ({
   required,
   handleClear,
   className,
+  placeholderText = 'Select date',
   showTimeSelect = true,
+  timeFormat = 'HH:mm',
+  timeIntervals = 30,
+  dateFormat,
+  ...props
 }) => {
   const [field, meta] = useField(name);
   const { setFieldValue } = useFormikContext<any>();
@@ -48,14 +54,14 @@ const DateField: NextPage<Props> = ({
           selected={field.value ? new Date(field.value) : null}
           onChange={(date) => setFieldValue(name, date)}
           showTimeSelect={showTimeSelect}
-          timeFormat="HH:mm"
-          timeIntervals={30}
-          dateFormat={showTimeSelect ? 'yyyy-MM-dd HH:mm' : 'yyyy-MM-dd'}
+          timeFormat={timeFormat}
+          timeIntervals={timeIntervals}
+          dateFormat={dateFormat ? dateFormat : showTimeSelect ? 'yyyy-MM-dd HH:mm' : 'yyyy-MM-dd'}
           className={inputClassName}
           wrapperClassName={'w-full'}
-          placeholderText="Pilih tanggal"
+          placeholderText={placeholderText}
+				  {...props}
         />
-
         {handleClear && field.value && (
           <button
             type="button"

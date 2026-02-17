@@ -16,6 +16,7 @@ import { weekdays } from "moment";
 import TextFieldNumber from "@/components/formik/text-field-number";
 import CheckboxField from "@/components/formik/checkbox-field";
 import { DAYMAP } from "@/utils/constant";
+import DateField from "../formik/date-field";
 
 type Props = {
   show: boolean;
@@ -30,6 +31,8 @@ const schema = Yup.object().shape({
   price: Yup.number()
     .typeError('Field be a number')
     .required('Required field'),
+  startTime: Yup.string(),
+  endTime: Yup.string(),
   weekdays: Yup.array().of(Yup.number()),
 });
 
@@ -37,6 +40,8 @@ const defaultInitFormikValue = {
   companyId: '',
   propertyId: '',
   price: '',
+  startTime: null,
+  endTime: null,
   weekdays: [],
 }
 
@@ -113,6 +118,8 @@ const ModalPropertyprice: NextPage<Props> = ({ show, onClickOverlay, id, propert
         setInitFormikValue({
           companyId: data.payload.companyId,
           propertyId: data.payload.propertyId,
+          startTime: data.payload.startTime,
+          endTime: data.payload.endTime,
           price: data.payload.price,
           weekdays: data.payload.weekdays,
         })
@@ -164,6 +171,24 @@ const ModalPropertyprice: NextPage<Props> = ({ show, onClickOverlay, id, propert
                           label={'Price'}
                           name={`price`}
                           placeholder={'100...'}
+                        />
+                      </div>
+                      <div className="mb-4">
+                        <DateField
+                          label='Start Time'
+                          name='startTime'
+                          dateFormat="HH:mm"
+                          showTimeSelectOnly={true}
+                          handleClear={true}
+                        />
+                      </div>
+                      <div className="mb-4">
+                        <DateField
+                          label='End Time'
+                          name='endTime'
+                          dateFormat="HH:mm"
+                          showTimeSelectOnly={true}
+                          handleClear={true}
                         />
                       </div>
                       <div className="mb-4">
