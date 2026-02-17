@@ -13,8 +13,8 @@ import TextAreaField from "@/components/formik/text-area-field";
 import ButtonSubmit from "@/components/formik/button-submit";
 import { CreatePropertyprice, PropertyView } from "@/types/property";
 import { weekdays } from "moment";
-import TextFieldNumber from "../formik/text-field-number";
-import CheckboxField from "../formik/checkbox-field";
+import TextFieldNumber from "@/components/formik/text-field-number";
+import CheckboxField from "@/components/formik/checkbox-field";
 import { DAYMAP } from "@/utils/constant";
 import { getUuid } from "@/utils/helper";
 

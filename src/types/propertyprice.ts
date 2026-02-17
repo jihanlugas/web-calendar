@@ -19,6 +19,8 @@ export declare interface PropertypriceView {
   propertyName: string;
   createName: string;
   updateName: string;
+  startTimeFormated: string;
+  endTimeFormated: string;
 
   company?: CompanyView;
   property?: PropertyView;

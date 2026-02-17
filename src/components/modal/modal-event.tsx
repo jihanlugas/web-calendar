@@ -2,14 +2,14 @@ import { NextPage } from "next";
 import { IoClose } from "react-icons/io5";
 import Modal from "@/components/modal/modal"
 import { Form, Formik, FormikValues } from "formik";
-import TextField from "../formik/text-field";
-import DropdownField from "../formik/dropdown-field";
-import DateField from "../formik/date-field";
-import ButtonSubmit from "../formik/button-submit";
+import TextField from "@/components/formik/text-field";
+import DropdownField from "@/components/formik/dropdown-field";
+import DateField from '@/components/formik/date-field';
+import ButtonSubmit from "@/components/formik/button-submit";
 import { Dispatch, useEffect, useState } from "react";
 import * as Yup from 'yup';
-import { displayDateTime, displayDateTimeForm, displayDuration, displayMoney } from "@/utils/formater";
-import TextAreaField from "../formik/text-area-field";
+import { displayDateTime, displayDuration, displayMoney } from "@/utils/formater";
+import TextAreaField from "@/components/formik/text-area-field";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Api } from "@/lib/api";
 import notif from "@/utils/notif";
@@ -309,11 +309,7 @@ const ModalEventForm = ({ onClickOverlay, event, units, setItems }) => {
 
   useEffect(() => {
     if (event) {
-      setInitFormikValue({
-        ...event,
-        startDt: displayDateTimeForm(event.startDt),
-        endDt: displayDateTimeForm(event.endDt),
-      })
+      setInitFormikValue(event)
     }
   }, [event])
 
@@ -324,9 +320,6 @@ const ModalEventForm = ({ onClickOverlay, event, units, setItems }) => {
   };
 
   const handleSubmit = (values, formikHelpers) => {
-    values.startDt = (values.startDt ? new Date(values.startDt as string).toISOString() : null)
-    values.endDt = (values.endDt ? new Date(values.endDt as string).toISOString() : null)
-
     if (values.id !== '') {
       mutateUpdate(values, {
         onSuccess: ({ status, message, payload }) => {
@@ -335,8 +328,6 @@ const ModalEventForm = ({ onClickOverlay, event, units, setItems }) => {
             onClickOverlay(true)
             notif.success(message);
           } else if (payload?.listError) {
-            values.startDt = values.startDt ? displayDateTimeForm(values.startDt) : ''
-            values.endDt = values.endDt ? displayDateTimeForm(values.endDt) : ''
             formikHelpers.setErrors(payload.listError);
           } else {
             notif.error(message);
@@ -353,8 +344,6 @@ const ModalEventForm = ({ onClickOverlay, event, units, setItems }) => {
             onClickOverlay(true)
             notif.success(message);
           } else if (payload?.listError) {
-            values.startDt = values.startDt ? displayDateTimeForm(values.startDt) : ''
-            values.endDt = values.endDt ? displayDateTimeForm(values.endDt) : ''
             formikHelpers.setErrors(payload.listError);
           } else {
             notif.error(message);

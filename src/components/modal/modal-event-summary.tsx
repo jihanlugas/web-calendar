@@ -5,16 +5,15 @@ import { PropertyView } from "@/types/property";
 import { EventView } from "@/types/event";
 import { Form, Formik, FormikValues } from "formik";
 import * as Yup from 'yup';
-import TextField from "../formik/text-field";
-import DateField from "../formik/date-field";
+import TextField from "@/components/formik/text-field";
 import { EVENT_STATUS, EVENT_STATUS_CONFIRM, EVENT_STATUS_HOLD } from "@/utils/constant";
-import DropdownField from "../formik/dropdown-field";
-import TextAreaField from "../formik/text-area-field";
-import ButtonSubmit from "../formik/button-submit";
+import DropdownField from "@/components/formik/dropdown-field";
+import TextAreaField from "@/components/formik/text-area-field";
+import ButtonSubmit from "@/components/formik/button-submit";
 import { useMutation } from "@tanstack/react-query";
 import { Api } from "@/lib/api";
 import { useEffect, useState } from "react";
-import { displayDateTime, displayDateTimeForm, displayDuration, displayMoney } from "@/utils/formater";
+import { displayDateTime, displayDuration, displayMoney } from "@/utils/formater";
 
 type Props = {
   show: boolean;

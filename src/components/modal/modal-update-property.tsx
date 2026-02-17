@@ -9,10 +9,10 @@ import { Api } from "@/lib/api";
 import notif from "@/utils/notif";
 import { Form, Formik, FormikHelpers, FormikValues } from "formik";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
-import TextField from "../formik/text-field";
-import TextAreaField from "../formik/text-area-field";
-import TextFieldNumber from "../formik/text-field-number";
-import ButtonSubmit from "../formik/button-submit";
+import TextField from "@/components/formik/text-field";
+import TextAreaField from "@/components/formik/text-area-field";
+import TextFieldNumber from "@/components/formik/text-field-number";
+import ButtonSubmit from "@/components/formik/button-submit";
 
 type Props = {
   show: boolean;
@@ -23,13 +23,11 @@ type Props = {
 const schema = Yup.object().shape({
   name: Yup.string().required('Required field'),
   description: Yup.string().max(200, 'Must be 200 characters or less'),
-  price: Yup.number().nullable().required('Required field'),
 });
 
 const defaultInitFormikValue: UpdateProperty = {
   name: '',
   description: '',
-  price: '',
 }
 
 const ModalEditProperty: NextPage<Props> = ({ show, onClickOverlay, id }) => {
@@ -76,7 +74,6 @@ const [selectedId, setSelectedId] = useState<string>('')
         setInitFormikValue({
           name: data.payload.name,
           description: data.payload.description,
-          price: data.payload.price,
         })
       }
     }

@@ -5,18 +5,17 @@ import { PropertyView } from "@/types/property";
 import { EventNew } from "@/types/event";
 import { Form, Formik, FormikValues, useFormikContext } from "formik";
 import * as Yup from 'yup';
-import TextField from "../formik/text-field";
-import DateField from "../formik/date-field";
+import TextField from "@/components/formik/text-field";
+import DateField from "@/components/formik/date-field";
 import { EVENT_STATUS } from "@/utils/constant";
-import DropdownField from "../formik/dropdown-field";
-import TextAreaField from "../formik/text-area-field";
-import ButtonSubmit from "../formik/button-submit";
+import DropdownField from "@/components/formik/dropdown-field";
+import TextAreaField from "@/components/formik/text-area-field";
+import ButtonSubmit from "@/components/formik/button-submit";
 import { UseMutateFunction, useMutation } from "@tanstack/react-query";
 import { Api } from "@/lib/api";
 import { useEffect, useRef, useState } from "react";
-import { displayDateTimeForm } from "@/utils/formater";
 import notif from "@/utils/notif";
-import TextFieldNumber from "../formik/text-field-number";
+import TextFieldNumber from "@/components/formik/text-field-number";
 
 type Props = {
   show: boolean;
@@ -122,9 +121,6 @@ const ModalEventNew: NextPage<Props> = ({ show, onClickOverlay, property, eventN
     const submitValues = {
       ...values,
       propertyId: property.id,
-      // Ensure dates are in ISO format for the API
-      startDt: new Date(values.startDt).toISOString(),
-      endDt: new Date(values.endDt).toISOString()
     };
 
     mutateCreate(submitValues, {
@@ -149,18 +145,15 @@ const ModalEventNew: NextPage<Props> = ({ show, onClickOverlay, property, eventN
 
   useEffect(() => {
     if (show) {
-      setInitFormikValue({
-        ...eventNew,
-        startDt: displayDateTimeForm(eventNew.startDt),
-        endDt: displayDateTimeForm(eventNew.endDt),
-      })
+      setInitFormikValue(eventNew)
     } else {
       setInitFormikValue(null)
     }
   }, [show])
 
+
   return (
-    <Modal show={show} onClickOverlay={onClickOverlay} layout={'sm:max-w-2xl'}>
+    <Modal show={show && initFormikValue !== null} onClickOverlay={onClickOverlay} layout={'sm:max-w-2xl'}>
       <div className="">
         <div className={'p-4 text-xl flex justify-between items-center'}>
           <div>New Event</div>
@@ -257,6 +250,16 @@ const ModalEventNew: NextPage<Props> = ({ show, onClickOverlay, property, eventN
                         />
                       </div>
                     </div>
+                    {process.env.DEBUG === 'true' && (
+                      <div className="hidden md:flex mb-4 p-4 whitespace-pre-wrap">
+                        {JSON.stringify(values, null, 4)}
+                      </div>
+                    )}
+                    {process.env.DEBUG === 'true' && (
+                      <div className="hidden md:flex mb-4 p-4 whitespace-pre-wrap">
+                        {JSON.stringify(eventNew, null, 4)}
+                      </div>
+                    )}
                   </Form>
                 </>
               );

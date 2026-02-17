@@ -9,10 +9,10 @@ import { Api } from "@/lib/api";
 import notif from "@/utils/notif";
 import { Form, Formik, FormikHelpers, FormikValues } from "formik";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
-import TextField from "../formik/text-field";
-import TextAreaField from "../formik/text-area-field";
-import TextFieldNumber from "../formik/text-field-number";
-import ButtonSubmit from "../formik/button-submit";
+import TextField from "@/components/formik/text-field";
+import TextAreaField from "@/components/formik/text-area-field";
+import TextFieldNumber from "@/components/formik/text-field-number";
+import ButtonSubmit from "@/components/formik/button-submit";
 
 type Props = {
   show: boolean;

@@ -118,14 +118,15 @@ export default function Timeline({
           data-tooltip-delay-hide={200}
           title='' // set title empty to remove default tooltip and use custom tooltip
         >
-          {itemContext.useResizeHandle ? <div {...leftResizeProps} /> : ''}
+          {itemContext.useResizeHandle ? <div key={itemprops.key} {...leftResizeProps} /> : ''}
           <div
+          key={itemprops.key}
             className="rct-item-content"
             style={{ maxHeight: `${itemContext.dimensions.height}` }}
           >
             {itemContext.title}
           </div>
-          {itemContext.useResizeHandle ? <div {...rightResizeProps} /> : ''}
+          {itemContext.useResizeHandle ? <div key={itemprops.key} {...rightResizeProps} /> : ''}
         </div>
         <Tooltip id={`tootltip-item-${item.id}`} style={{ zIndex: 999 }}>
           <div className='text-xs'>
@@ -154,7 +155,6 @@ export default function Timeline({
           </div>
         </Tooltip>
       </>
-
     )
   }
 

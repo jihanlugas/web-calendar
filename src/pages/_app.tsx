@@ -1,6 +1,7 @@
 import 'react-notifications-component/dist/theme.css'
 import 'animate.css/animate.min.css';
 import 'react-calendar-timeline/style.css';
+import "react-datepicker/dist/react-datepicker.css";
 import "@/styles/globals.css";
 import "@/styles/react-calendar-timeline.css";
 import Head from 'next/head';

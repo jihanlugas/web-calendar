@@ -56,10 +56,10 @@ const Index: NextPage<Props> = ({ loginUser }) => {
             { name: 'Dashboard', path: '' },
           ]}
         />
-        {properties.map((property, key) => {
+        {properties.map((property) => {
           return (
             <SingleTimeline
-              key={key}
+              key={property.id}
               property={property}
             />
           )
@@ -124,7 +124,7 @@ const SingleTimeline: NextPage<SingleTimelineProps> = ({ property }) => {
   const url = process.env.WS_END_POINT + '/ws?propertyId=' + property.id;
   const { isConnected, messages, connect, sendMessage } = useWebSocket({ url, autoReconnect: true });
 
-  const onCanvasDoubleClick = (groupId, time, e) => {
+  const onCanvasClick = (groupId, time, e) => {
     const startDt = new Date(time)
     const endDt = new Date(time)
 
@@ -260,12 +260,12 @@ const SingleTimeline: NextPage<SingleTimelineProps> = ({ property }) => {
         property={property}
       />
       <div className='bg-white mb-4 p-4 rounded shadow'>
-        <div className='flex justify-end'>
+        {/* <div className='flex justify-end'>
           <button type='button' onClick={handleClickNewEvent} className='w-60 h-10 bg-primary-500 hover:bg-primary-600 rounded mb-4 text-gray-50 font-bold flex justify-center items-center duration-300 hover:scale-105'>
             <BiPlus className='mr-2' size={'1.5rem'} />
             <div>New Event</div>
           </button>
-        </div>
+        </div> */}
         <Timeline
           isConnected={isConnected}
           connect={connect}
@@ -278,13 +278,13 @@ const SingleTimeline: NextPage<SingleTimelineProps> = ({ property }) => {
           groups={property.units}
           items={items}
           onBoundsChange={onBoundsChange}
-          onCanvasDoubleClick={onCanvasDoubleClick}
+          // onCanvasDoubleClick={onCanvasDoubleClick}
           onItemSelect={(itemId) => { setSelectedItem(itemId as string) }}
           onItemClick={onItemClick}
           onItemMove={onItemMove}
           selected={selectedItem ? [selectedItem] : []}
-          onItemDeselect={() => setSelectedItem(null)}
-          onCanvasClick={() => setSelectedItem(null)}
+          // onItemDeselect={() => setSelectedItem(null)}
+          onCanvasClick={onCanvasClick}
           canResize={false}
         // itemTouchSendsClick={true}
         // touchEnabled={true}
