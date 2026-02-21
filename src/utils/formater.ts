@@ -13,7 +13,7 @@ export const displayDate = (value, format = 'DD MMM YYYY') => {
 	}
 };
 
-export const displayTIme = (value, format = 'HH:mm') => {
+export const displayTime = (value, format = 'HH:mm') => {
 	if (value != null) {
 		return moment(value).format(format);
 	} else {

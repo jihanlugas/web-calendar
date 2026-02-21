@@ -7,7 +7,7 @@ import { Api } from "@/lib/api";
 import PageWithLayoutType from "@/types/layout";
 import { PropertyView } from "@/types/property";
 import { PropertypriceView } from "@/types/propertyprice";
-import { displayDateTime, displayDays, displayMoney } from "@/utils/formater";
+import { displayDateTime, displayDays, displayMoney, displayTime } from "@/utils/formater";
 import notif from "@/utils/notif";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { NextPage, GetServerSideProps } from "next";
@@ -81,13 +81,13 @@ const Index: NextPage<Props> = ({ id }) => {
   });
 
   const { mutate: mutateSort, isPending: isPendingSort } = useMutation({
-    mutationKey: ['property', 'sort', id],
+    mutationKey: ['property', id, 'sort-property-price'],
     mutationFn: (sortedPrices: PropertypriceView[]) => {
       const propertyprices = sortedPrices.map((item, index) => ({
         id: item.id,
-        priority: index + 1
+        priority: sortedPrices.length - index, // Assign new priority based on the new order (descending)
       }));
-      return Api.post(`/property/${id}/sort`, { propertyprices });
+      return Api.post(`/property/${id}/sort-property-price`, { propertyprices });
     }
   });
 
@@ -124,7 +124,7 @@ const Index: NextPage<Props> = ({ id }) => {
     if (oldIndex === -1 || newIndex === -1) return;
 
     const newOrder = arrayMove(sortablePrices, oldIndex, newIndex);
-    setPropertyPrices([...fixedPrices, ...newOrder]);
+    setPropertyPrices([...newOrder, ...fixedPrices]);
     setHasChanges(true);
   };
 
@@ -207,8 +207,8 @@ const Index: NextPage<Props> = ({ id }) => {
     }
   }, [data])
 
-  // Sortable component for property prices using dnd-kit
-  const SortablePriceItem = ({ price }: { price: PropertypriceView }) => {
+  // Sortable component for property propertyprices using dnd-kit
+  const SortablePriceItem = ({ propertyprice }: { propertyprice: PropertypriceView }) => {
     const {
       attributes,
       listeners,
@@ -216,7 +216,7 @@ const Index: NextPage<Props> = ({ id }) => {
       transform,
       transition,
       isDragging,
-    } = useSortable({ id: price.id });
+    } = useSortable({ id: propertyprice.id });
 
     const style = {
       transform: CSS.Transform.toString(transform),
@@ -232,8 +232,15 @@ const Index: NextPage<Props> = ({ id }) => {
           : 'opacity-100'
           }`}
       >
-        <div className="flex-1">{displayDays(price.weekdays)}</div>
-        <div className="flex-1">{displayMoney(price.price)}</div>
+        <div className="flex-1">
+          <div>{displayDays(propertyprice.weekdays)}</div>
+          {propertyprice.startTime && propertyprice.endTime && (
+            <div className="text-sm text-gray-500">
+              {displayTime(propertyprice.startTime) + ' - ' + displayTime(propertyprice.endTime)}
+            </div>
+          )}
+        </div>
+        <div className="flex-1 text-right px-4">{displayMoney(propertyprice.price as number)}</div>
         <div className="ml-auto flex">
           <div
             {...attributes}
@@ -244,18 +251,18 @@ const Index: NextPage<Props> = ({ id }) => {
             <BiMove className='' size={'1.5rem'} />
           </div>
           <button
-            className='w-10 h-10 rounded text-amber-500 hover:text-amber-600 font-bold flex justify-center items-center duration-300 hover:scale-105 text-base'
+            className='w-10 h-10 rounded text-amber-500 hover:text-amber-600 font-bold flex justify-center items-center duration-300 text-base'
             type="button"
             title='Update Price'
-            onClick={() => toggleModalPropertyprice(price.id)}
+            onClick={() => toggleModalPropertyprice(propertyprice.id)}
           >
             <RiPencilLine className='' size={'1.5rem'} />
           </button>
           <button
-            className='w-10 h-10 rounded text-rose-500 hover:text-rose-600 font-bold flex justify-center items-center duration-300 hover:scale-105 text-base'
+            className='w-10 h-10 rounded text-rose-500 hover:text-rose-600 font-bold flex justify-center items-center duration-300 text-base'
             type="button"
             title='Delete Price'
-            onClick={() => handleClickDelete(price.id, "delete")}
+            onClick={() => handleClickDelete(propertyprice.id, "delete")}
           >
             <IoClose className='' size={'1.5rem'} />
           </button>
@@ -445,7 +452,7 @@ const Index: NextPage<Props> = ({ id }) => {
                               {sortablePrices.map((propertyprice) => (
                                 <SortablePriceItem
                                   key={propertyprice.id}
-                                  price={propertyprice}
+                                  propertyprice={propertyprice}
                                 />
                               ))}
                             </SortableContext>
@@ -454,19 +461,40 @@ const Index: NextPage<Props> = ({ id }) => {
                                 key={price.id}
                                 className="flex items-center border-2 p-2 mb-2 bg-gray-100"
                               >
-                                <div className="flex-1">{displayDays(price.weekdays)}</div>
-                                <div className="flex-1">{displayMoney(price.price)}</div>
-
-                                <div className="ml-auto w-10 h-10 flex items-center justify-center opacity-40 cursor-not-allowed">
-                                  <BiMove size="1.5rem" />
+                                <div className="flex-1">
+                                  <div>{displayDays(price.weekdays)}</div>
+                                  {price.startTime && price.endTime && (
+                                    <div className="text-sm text-gray-500">
+                                      {displayTime(price.startTime) + ' - ' + displayTime(price.endTime)}
+                                    </div>
+                                  )}
                                 </div>
-
-                                <button
-                                  className="w-10 h-10 text-amber-500"
-                                  onClick={() => toggleModalPropertyprice(price.id)}
-                                >
-                                  <RiPencilLine size="1.5rem" />
-                                </button>
+                                <div className="flex-1 text-right px-4">{displayMoney(price.price as number)}</div>
+                                <div className="ml-auto flex">
+                                  <div
+                                    className="w-10 h-10 flex justify-center items-center touch-none cursor-not-allowed text-gray-300"
+                                    title='Drag to reorder'
+                                  >
+                                    <BiMove className='' size={'1.5rem'} />
+                                  </div>
+                                  <button
+                                    className='w-10 h-10 rounded text-amber-500 hover:text-amber-600 font-bold flex justify-center items-center duration-300 text-base'
+                                    type="button"
+                                    title='Update Price'
+                                    onClick={() => toggleModalPropertyprice(price.id)}
+                                  >
+                                    <RiPencilLine className='' size={'1.5rem'} />
+                                  </button>
+                                  <button
+                                    className='w-10 h-10 rounded text-rose-500 hover:text-rose-600 font-bold flex justify-center items-center duration-300 text-base disabled:cursor-not-allowed disabled:text-gray-300'
+                                    type="button"
+                                    title='Delete Price'
+                                    disabled={true}
+                                    onClick={() => handleClickDelete(price.id, "delete")}
+                                  >
+                                    <IoClose className='' size={'1.5rem'} />
+                                  </button>
+                                </div>
                               </div>
                             ))}
                             {hasChanges && (
@@ -475,7 +503,7 @@ const Index: NextPage<Props> = ({ id }) => {
                                   <button
                                     className='w-60 h-10 bg-rose-500 hover:bg-rose-600 rounded text-gray-50 font-bold flex justify-center items-center duration-300 hover:scale-105 text-base'
                                     type="button"
-                                    title='Save Sort Order'
+                                    title='Cancel Sort Order'
                                     onClick={cancelSortOrder}
                                     disabled={isPendingSort}
                                   >
@@ -513,8 +541,15 @@ const Index: NextPage<Props> = ({ id }) => {
                                 key={propertyprice.id}
                                 className='flex items-center border-2 p-2 mb-2'
                               >
-                                <div className="flex-1">{displayDays(propertyprice.weekdays)}</div>
-                                <div className="flex-1">{displayMoney(propertyprice.price)}</div>
+                                <div className="flex-1">
+                                  <div>{displayDays(propertyprice.weekdays)}</div>
+                                  {propertyprice.startTime && propertyprice.endTime && (
+                                    <div className="text-sm text-gray-500">
+                                      {displayTime(propertyprice.startTime) + ' - ' + displayTime(propertyprice.endTime)}
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="flex-1 text-right px-4">{displayMoney(propertyprice.price as number)}</div>
                                 <div className="ml-auto flex">
                                   <button
                                     className='w-10 h-10 rounded text-amber-500 hover:text-amber-600 font-bold flex justify-center items-center duration-300 hover:scale-105 text-base'
@@ -528,6 +563,7 @@ const Index: NextPage<Props> = ({ id }) => {
                                     className='w-10 h-10 rounded text-rose-500 hover:text-rose-600 font-bold flex justify-center items-center duration-300 hover:scale-105 text-base'
                                     type="button"
                                     title='Delete Price'
+                                    disabled={propertyprice.priority === 1}
                                     onClick={() => handleClickDelete(propertyprice.id, "delete")}
                                   >
                                     <IoClose className='' size={'1.5rem'} />
@@ -553,7 +589,12 @@ const Index: NextPage<Props> = ({ id }) => {
               </div>
               {process.env.DEBUG === 'true' && (
                 <div className="hidden md:flex mb-4 p-4 whitespace-pre-wrap">
-                  {JSON.stringify(property, null, 4)}
+                  {JSON.stringify(sortablePrices.map(({ id, price, priority }) => ({ id, price, priority })), null, 4)}
+                </div>
+              )}
+              {process.env.DEBUG === 'true' && (
+                <div className="hidden md:flex mb-4 p-4 whitespace-pre-wrap">
+                  {JSON.stringify(propertyPrices.map(({ id, price, priority }) => ({ id, price, priority })), null, 4)}
                 </div>
               )}
             </div>

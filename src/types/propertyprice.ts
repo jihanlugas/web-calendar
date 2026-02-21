@@ -27,11 +27,12 @@ export declare interface PropertypriceView {
 }
 
 export declare interface CreatePropertyprice {
+  id: string; // for smooth integration with dnd-kit not used in backend
   companyId: string;
   propertyId: string;
   priority: number;
   weekdays: any;
   startTime?: string;
   endTime?: string;
-  price: number;
+  price: number | string;
 }

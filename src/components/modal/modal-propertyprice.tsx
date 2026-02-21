@@ -12,6 +12,7 @@ import TextField from "@/components/formik/text-field";
 import TextAreaField from "@/components/formik/text-area-field";
 import ButtonSubmit from "@/components/formik/button-submit";
 import { PropertyView } from "@/types/property";
+import { CreatePropertyprice } from "@/types/propertyprice";
 import { weekdays } from "moment";
 import TextFieldNumber from "@/components/formik/text-field-number";
 import CheckboxField from "@/components/formik/checkbox-field";
@@ -31,14 +32,16 @@ const schema = Yup.object().shape({
   price: Yup.number()
     .typeError('Field be a number')
     .required('Required field'),
-  startTime: Yup.string(),
-  endTime: Yup.string(),
+  startTime: Yup.string().nullable(),
+  endTime: Yup.string().nullable(),
   weekdays: Yup.array().of(Yup.number()),
 });
 
-const defaultInitFormikValue = {
+const defaultInitFormikValue: CreatePropertyprice = {
+  id: '',
   companyId: '',
   propertyId: '',
+  priority: 0,
   price: '',
   startTime: null,
   endTime: null,
@@ -49,7 +52,7 @@ const ModalPropertyprice: NextPage<Props> = ({ show, onClickOverlay, id, propert
 
   const [selectedId, setSelectedId] = useState<string>('')
 
-  const [initFormikValue, setInitFormikValue] = useState(defaultInitFormikValue)
+  const [initFormikValue, setInitFormikValue] = useState<CreatePropertyprice>(defaultInitFormikValue)
 
   const preloads = 'Company'
   const { data, isLoading } = useQuery({
@@ -116,9 +119,11 @@ const ModalPropertyprice: NextPage<Props> = ({ show, onClickOverlay, id, propert
     if (data) {
       if (data?.status) {
         setInitFormikValue({
+          id: data.payload.id,
           companyId: data.payload.companyId,
           propertyId: data.payload.propertyId,
           startTime: data.payload.startTime,
+          priority: data.payload.priority,
           endTime: data.payload.endTime,
           price: data.payload.price,
           weekdays: data.payload.weekdays,
@@ -173,24 +178,30 @@ const ModalPropertyprice: NextPage<Props> = ({ show, onClickOverlay, id, propert
                           placeholder={'100...'}
                         />
                       </div>
-                      <div className="mb-4">
-                        <DateField
-                          label='Start Time'
-                          name='startTime'
-                          dateFormat="HH:mm"
-                          showTimeSelectOnly={true}
-                          handleClear={true}
-                        />
-                      </div>
-                      <div className="mb-4">
-                        <DateField
-                          label='End Time'
-                          name='endTime'
-                          dateFormat="HH:mm"
-                          showTimeSelectOnly={true}
-                          handleClear={true}
-                        />
-                      </div>
+                      {values?.priority !== 1 && (
+                        <>
+                          <div className="mb-4">
+                            <DateField
+                              label='Start Time'
+                              name='startTime'
+                              dateFormat="HH:mm"
+                              showTimeSelectOnly={true}
+                              handleClear={true}
+                              placeholderText={"Start Time"}
+                            />
+                          </div>
+                          <div className="mb-4">
+                            <DateField
+                              label='End Time'
+                              name='endTime'
+                              dateFormat="HH:mm"
+                              showTimeSelectOnly={true}
+                              handleClear={true}
+                              placeholderText={"Start Time"}
+                            />
+                          </div>
+                        </>
+                      )}
                       <div className="mb-4">
                         {DAYMAP.map((day, index) => (
                           <div key={index} className="mb-2">
@@ -198,6 +209,7 @@ const ModalPropertyprice: NextPage<Props> = ({ show, onClickOverlay, id, propert
                               label={day}
                               name="weekdays"
                               className="pb-2 pt-2"
+                              disabled={values?.priority === 1}
                               value={index}
                               onChange={(e) => {
                                 if (e.target.checked) {

@@ -7,11 +7,12 @@ import MainAuth from "@/components/layout/main-auth";
 import { Api } from "@/lib/api";
 import { LoginUser } from "@/types/auth";
 import PageWithLayoutType from "@/types/layout";
-import { CreateProperty, CreatePropertyprice } from "@/types/property";
-import { displayDays, displayMoney } from '@/utils/formater';
+import { CreateProperty } from "@/types/property";
+import { CreatePropertyprice } from "@/types/propertyprice";
+import { displayDays, displayMoney, displayTime } from '@/utils/formater';
 import notif from "@/utils/notif";
 import { useMutation } from "@tanstack/react-query";
-import { FieldArray, Form, Formik, FormikHelpers, FormikValues } from "formik";
+import { FieldArray, Form, Formik, FormikHelpers, FormikProps, FormikValues } from "formik";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { NextPage } from "next/types";
@@ -89,9 +90,14 @@ const initFormikValue: CreateProperty = {
   propertyprices: [
     {
       id: getUuid(),
+      companyId: '',
+      propertyId: '',
       priority: 1,
       price: 0,
+      startTime: null,
+      endTime: null,
       weekdays: [0, 1, 2, 3, 4, 5, 6],
+
     }
   ],
 }
@@ -102,8 +108,7 @@ const New: NextPage<Props> = ({ loginUser }) => {
 
   const [showModalPropertyprice, setShowModalPropertyprice] = useState<boolean>(false);
   const [propertyprice, setPropertyprice] = useState<CreatePropertyprice>(null);
-  const [dataindex, setDataindex] = useState<number>(null);
-  const formRef = useRef(null);
+  const formRef = useRef<FormikProps<CreateProperty>>(null);
 
   const { mutate: mutateSubmit, isPending } = useMutation({
     mutationKey: ['property', 'create'],
@@ -157,9 +162,8 @@ const New: NextPage<Props> = ({ loginUser }) => {
 
 
 
-  const toggleModalPropertyprice = (propertyprice?: CreatePropertyprice, index?: number) => {
+  const toggleModalPropertyprice = (propertyprice?: CreatePropertyprice) => {
     setPropertyprice(propertyprice);
-    setDataindex(index);
     setShowModalPropertyprice(!showModalPropertyprice);
   };
 
@@ -184,14 +188,14 @@ const New: NextPage<Props> = ({ loginUser }) => {
   }
 
   const handleSubmitPropertyprice = (values: CreatePropertyprice) => {
-    if (dataindex !== null) {
+    const dataindex = formRef.current.values.propertyprices.findIndex((p) => p.id === values.id);
+
+    if (dataindex !== -1) {
       formRef.current.setFieldValue(`propertyprices.${dataindex}`, values);
     } else {
       const currentPropertyprices = formRef.current.values.propertyprices || []
       formRef.current.setFieldValue(`propertyprices`, [values, ...currentPropertyprices]);
     }
-    // formRef.current.setFieldValue(`propertyprices.${dataindex ?? formRef.current.values.propertyprices.length}`, values);
-    // setShowModalPropertyprice(false);
   }
 
   const SortablePriceItem = ({ propertyprice, index, remove }: { propertyprice: CreatePropertyprice, index: number, remove: (index: number) => void }) => {
@@ -218,8 +222,15 @@ const New: NextPage<Props> = ({ loginUser }) => {
           : 'opacity-100'
           }`}
       >
-        <div className="flex-1">{displayDays(propertyprice.weekdays)}</div>
-        <div className="flex-1">{displayMoney(propertyprice.price as number)}</div>
+        <div className="flex-1">
+          <div>{displayDays(propertyprice.weekdays)}</div>
+          {propertyprice.startTime && propertyprice.endTime && (
+            <div className="text-sm text-gray-500">
+              {displayTime(propertyprice.startTime) + ' - ' + displayTime(propertyprice.endTime)}
+            </div>
+          )}
+        </div>
+        <div className="flex-1 text-right">{displayMoney(propertyprice.price as number)}</div>
         <div className="ml-auto flex">
           <div
             {...attributes}
@@ -230,15 +241,15 @@ const New: NextPage<Props> = ({ loginUser }) => {
             <BiMove className='' size={'1.5rem'} />
           </div>
           <button
-            className='w-10 h-10 rounded text-amber-500 hover:text-amber-600 font-bold flex justify-center items-center duration-300 hover:scale-105 text-base'
+            className='w-10 h-10 rounded text-amber-500 hover:text-amber-600 font-bold flex justify-center items-center duration-300 text-base'
             type="button"
             title='Update Price'
-            onClick={() => toggleModalPropertyprice(propertyprice, index)}
+            onClick={() => toggleModalPropertyprice(propertyprice)}
           >
             <RiPencilLine className='' size={'1.5rem'} />
           </button>
           <button
-            className='w-10 h-10 rounded text-rose-500 hover:text-rose-600 font-bold flex justify-center items-center duration-300 hover:scale-105 text-base'
+            className='w-10 h-10 rounded text-rose-500 hover:text-rose-600 font-bold flex justify-center items-center duration-300 text-base'
             type="button"
             title='Delete Price'
             onClick={() => remove(index)}
@@ -261,7 +272,6 @@ const New: NextPage<Props> = ({ loginUser }) => {
         onClickOverlay={toggleModalPropertyprice}
         propertyprice={propertyprice}
         setPropertyprice={setPropertyprice}
-        dataindex={dataindex}
         handleSubmitPropertyprice={handleSubmitPropertyprice}
       />
       <div className='p-4'>
@@ -357,7 +367,7 @@ const New: NextPage<Props> = ({ loginUser }) => {
                                     className='w-60 h-10 bg-primary-500 hover:bg-primary-600 rounded text-gray-50 font-bold flex justify-center items-center duration-300 hover:scale-105 text-base'
                                     type="button"
                                     title='Create Price'
-                                    onClick={() => toggleModalPropertyprice(null, null)}
+                                    onClick={() => toggleModalPropertyprice(null)}
                                   >
                                     <BiPlus className='mr-2' size={'1.5rem'} />
                                     <div>Create Price</div>
@@ -399,19 +409,32 @@ const New: NextPage<Props> = ({ loginUser }) => {
                                                   key={index}
                                                 >
                                                   <div className='flex items-center border-2 p-2 mb-2'>
-                                                    <div className="flex-1">{displayDays(propertyprice.weekdays)}</div>
-                                                    <div className="flex-1">{displayMoney(propertyprice.price as number)}</div>
+                                                    <div className="flex-1">
+                                                      <div>{displayDays(propertyprice.weekdays)}</div>
+                                                      {propertyprice.startTime && propertyprice.endTime && (
+                                                        <div className="text-sm text-gray-500">
+                                                          {displayTime(propertyprice.startTime) + ' - ' + displayTime(propertyprice.endTime)}
+                                                        </div>
+                                                      )}
+                                                    </div>
+                                                    <div className="flex-1 text-right px-4">{displayMoney(propertyprice.price as number)}</div>
                                                     <div className="ml-auto flex">
+                                                      <div
+                                                        className="w-10 h-10 flex justify-center items-center touch-none cursor-not-allowed text-gray-300"
+                                                        title='Drag to reorder'
+                                                      >
+                                                        <BiMove className='' size={'1.5rem'} />
+                                                      </div>
                                                       <button
-                                                        className='w-10 h-10 rounded text-amber-500 hover:text-amber-600 font-bold flex justify-center items-center duration-300 hover:scale-105 text-base'
+                                                        className='w-10 h-10 rounded text-amber-500 hover:text-amber-600 font-bold flex justify-center items-center duration-300 text-base'
                                                         type="button"
                                                         title='Update Price'
-                                                        onClick={() => toggleModalPropertyprice(propertyprice, index)}
+                                                        onClick={() => toggleModalPropertyprice(propertyprice)}
                                                       >
                                                         <RiPencilLine className='' size={'1.5rem'} />
                                                       </button>
                                                       <button
-                                                        className='w-10 h-10 rounded text-rose-500 hover:text-rose-600 font-bold flex justify-center items-center duration-300 hover:scale-105 text-base disabled:text-gray-500 disabled:cursor-not-allowed'
+                                                        className='w-10 h-10 rounded text-rose-500 hover:text-rose-600 font-bold flex justify-center items-center duration-300 text-base disabled:cursor-not-allowed disabled:text-gray-300'
                                                         type="button"
                                                         disabled={propertyprice.priority === 1}
                                                         title='Delete Price'
@@ -422,7 +445,7 @@ const New: NextPage<Props> = ({ loginUser }) => {
                                                     </div>
                                                   </div>
                                                   {errors.propertyprices && errors.propertyprices[index] && Object.values(errors.propertyprices[index]).map((dataerr, key) => (
-                                                    <div className="text-rose-500 mb-2" key={key}>{dataerr}</div>
+                                                    <div className="text-rose-500 mb-2" key={key}>{dataerr as string}</div>
                                                   ))}
                                                 </div>
                                               ))}
@@ -439,14 +462,21 @@ const New: NextPage<Props> = ({ loginUser }) => {
                                                 key={index}
                                                 className='flex items-center border-2 p-2 mb-2'
                                               >
-                                                <div className="flex-1">{displayDays(propertyprice.weekdays)}</div>
-                                                <div className="flex-1">{displayMoney(propertyprice.price as number)}</div>
+                                                <div className="flex-1">
+                                                  <div>{displayDays(propertyprice.weekdays)}</div>
+                                                  {propertyprice.startTime && propertyprice.endTime && (
+                                                    <div className="text-sm text-gray-500">
+                                                      {displayTime(propertyprice.startTime) + ' - ' + displayTime(propertyprice.endTime)}
+                                                    </div>
+                                                  )}
+                                                </div>
+                                                <div className="flex-1 text-right px-4">{displayMoney(propertyprice.price as number)}</div>
                                                 <div className="ml-auto flex">
                                                   <button
                                                     className='w-10 h-10 rounded text-amber-500 hover:text-amber-600 font-bold flex justify-center items-center duration-300 hover:scale-105 text-base'
                                                     type="button"
                                                     title='Update Price'
-                                                    onClick={() => toggleModalPropertyprice(propertyprice, index)}
+                                                    onClick={() => toggleModalPropertyprice(propertyprice)}
                                                   >
                                                     <RiPencilLine className='' size={'1.5rem'} />
                                                   </button>
@@ -454,6 +484,7 @@ const New: NextPage<Props> = ({ loginUser }) => {
                                                     className='w-10 h-10 rounded text-rose-500 hover:text-rose-600 font-bold flex justify-center items-center duration-300 hover:scale-105 text-base'
                                                     type="button"
                                                     title='Delete Price'
+                                                    disabled={propertyprice.priority === 1}
                                                     onClick={() => remove(index)}
                                                   >
                                                     <IoClose className='' size={'1.5rem'} />

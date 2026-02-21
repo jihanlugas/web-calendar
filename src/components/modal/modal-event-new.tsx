@@ -255,11 +255,6 @@ const ModalEventNew: NextPage<Props> = ({ show, onClickOverlay, property, eventN
                         {JSON.stringify(values, null, 4)}
                       </div>
                     )}
-                    {process.env.DEBUG === 'true' && (
-                      <div className="hidden md:flex mb-4 p-4 whitespace-pre-wrap">
-                        {JSON.stringify(eventNew, null, 4)}
-                      </div>
-                    )}
                   </Form>
                 </>
               );

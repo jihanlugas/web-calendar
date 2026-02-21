@@ -2,7 +2,7 @@ import { CompanyView } from "./company";
 import { Paging } from "./pagination";
 import { UnitView } from "./unit";
 import { Propertytimeline } from "./propertytimeline";
-import { PropertypriceView } from "./propertyprice";
+import { CreatePropertyprice, PropertypriceView } from "./propertyprice";
 
 export interface PropertyView {
   id: string;
@@ -52,14 +52,14 @@ export declare interface CreatePropertyUnit {
   description: string;  
 }
 
-export declare interface CreatePropertyprice {
-  id: string; // for smooth integration with dnd-kit not used in backend
-  priority: number;
-  price: number | string;
-  startTime: string;
-  endTime: string;
-  weekdays: number[];
-}
+// export declare interface CreatePropertyprice {
+//   id: string; // for smooth integration with dnd-kit not used in backend
+//   priority: number;
+//   price: number | string;
+//   startTime?: string;
+//   endTime?: string;
+//   weekdays: number[];
+// }
 
 export declare interface UpdateProperty {
   name: string;

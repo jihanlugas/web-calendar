@@ -11,7 +11,8 @@ import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import TextField from "@/components/formik/text-field";
 import TextAreaField from "@/components/formik/text-area-field";
 import ButtonSubmit from "@/components/formik/button-submit";
-import { CreatePropertyprice, PropertyView } from "@/types/property";
+import { PropertyView } from "@/types/property";
+import { CreatePropertyprice } from "@/types/propertyprice";
 import { weekdays } from "moment";
 import TextFieldNumber from "@/components/formik/text-field-number";
 import CheckboxField from "@/components/formik/checkbox-field";
@@ -24,7 +25,6 @@ type Props = {
   onClickOverlay: (propertyprice?: CreatePropertyprice) => void;
   propertyprice: CreatePropertyprice;
   setPropertyprice: Dispatch<SetStateAction<CreatePropertyprice>>
-  dataindex?: number;
   handleSubmitPropertyprice?: (propertyprice: CreatePropertyprice) => void;
 
 }
@@ -35,14 +35,16 @@ const schema = Yup.object().shape({
   price: Yup.number()
     .typeError('Field be a number')
     .required('Required field'),
-  startTime: Yup.string(),
-  endTime: Yup.string(),
+  startTime: Yup.string().nullable(),
+  endTime: Yup.string().nullable(),
   weekdays: Yup.array().of(Yup.number()).min(1, 'Select at least one day').required('Required field'),
-  
+
 });
 
 const defaultInitFormikValue: CreatePropertyprice = {
   id: '',
+  companyId: '',
+  propertyId: '',
   priority: 0,
   price: '',
   startTime: null,
@@ -50,7 +52,7 @@ const defaultInitFormikValue: CreatePropertyprice = {
   weekdays: [],
 }
 
-const ModalCreatePropertyPropertyprice: NextPage<Props> = ({ show, onClickOverlay, propertyprice, setPropertyprice, dataindex, handleSubmitPropertyprice }) => {
+const ModalCreatePropertyPropertyprice: NextPage<Props> = ({ show, onClickOverlay, propertyprice, setPropertyprice, handleSubmitPropertyprice }) => {
 
   const [selectedId, setSelectedId] = useState<string>('')
 
@@ -63,7 +65,7 @@ const ModalCreatePropertyPropertyprice: NextPage<Props> = ({ show, onClickOverla
 
   useEffect(() => {
     if (show) {
-      if (dataindex === null) {
+      if (propertyprice === null) {
         setInitFormikValue({
           ...defaultInitFormikValue,
           id: getUuid(),
@@ -103,24 +105,30 @@ const ModalCreatePropertyPropertyprice: NextPage<Props> = ({ show, onClickOverla
                         autoFocus={true}
                       />
                     </div>
-                    <div className="mb-4">
-                      <DateField
-                        label='Start Time'
-                        name='startTime'
-                        dateFormat="HH:mm"
-                        showTimeSelectOnly={true}
-                        handleClear={true}
-                      />
-                    </div>
-                    <div className="mb-4">
-                      <DateField
-                        label='End Time'
-                        name='endTime'
-                        dateFormat="HH:mm"
-                        showTimeSelectOnly={true}
-                        handleClear={true}
-                      />
-                    </div>
+                    {values?.priority !== 1 && (
+                      <>
+                        <div className="mb-4">
+                          <DateField
+                            label='Start Time'
+                            name='startTime'
+                            dateFormat="HH:mm"
+                            showTimeSelectOnly={true}
+                            handleClear={true}
+                            placeholderText={"Start Time"}
+                          />
+                        </div>
+                        <div className="mb-4">
+                          <DateField
+                            label='End Time'
+                            name='endTime'
+                            dateFormat="HH:mm"
+                            showTimeSelectOnly={true}
+                            handleClear={true}
+                            placeholderText={"Start Time"}
+                          />
+                        </div>
+                      </>
+                    )}
                     <div className="mb-4">
                       {DAYMAP.map((day, index) => (
                         <div key={index} className="mb-2">

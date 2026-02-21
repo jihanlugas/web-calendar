@@ -14,7 +14,7 @@ import {
 import { EVENT_STATUS_CONFIRM, EVENT_STATUS_HOLD } from '@/utils/constant';
 import { IoCloseSharp } from 'react-icons/io5';
 import { Tooltip } from 'react-tooltip';
-import { displayMoney, displayTIme } from '@/utils/formater';
+import { displayMoney, displayTime } from '@/utils/formater';
 
 const keys: TimelineKeys = {
   groupIdKey: 'id',
@@ -137,7 +137,7 @@ export default function Timeline({
             <div>
               <div className='flex justify-between'>
                 <div>Time</div>
-                <div>{displayTIme(item.startDt) + ' - ' + displayTIme(item.endDt)}</div>
+                <div>{displayTime(item.startDt) + ' - ' + displayTime(item.endDt)}</div>
               </div>
               <div className='flex justify-between'>
                 <div>Status</div>
