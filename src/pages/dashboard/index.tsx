@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import { PageProperty, PropertyView } from '@/types/property';
 import moment from 'moment';
 import Timeline from '@/components/timeline';
-import ModalEventNew from '@/components/modal/modal-event-new';
+import ModalCreateEvent from '@/components/modal/modal-create-event';
 import { BiPlus } from 'react-icons/bi';
 import { NextPage } from 'next/types';
 import { LoginUser } from '@/types/auth';
@@ -16,7 +16,7 @@ import { EventNew, EventView } from '@/types/event';
 import notif from '@/utils/notif';
 import useWebSocket from '@/utils/hook';
 import { EVENT_STATUS_CONFIRM } from '@/utils/constant';
-import ModalEventSummary from '@/components/modal/modal-event-summary';
+import ModalEvent from '@/components/modal/modal-event';
 
 type Props = {
   loginUser: LoginUser
@@ -88,8 +88,8 @@ const defaultEvent: EventNew = {
 const SingleTimeline: NextPage<SingleTimelineProps> = ({ property }) => {
   const [selectedItem, setSelectedItem] = useState<string | null>(null);
   const [items, setItems] = useState<EventView[]>([]);
-  const [showModalEventNew, setShowModalEventNew] = useState<boolean>(false);
-  const [showModalEventSummary, setShowModalEventSummary] = useState<boolean>(false);
+  const [showModalCreateEvent, setShowModalCreateEvent] = useState<boolean>(false);
+  const [showModalEvent, setShowModalEvent] = useState<boolean>(false);
   const [eventNew, setEventNew] = useState<EventNew>(defaultEvent);
   const [event, setEvent] = useState<EventView>(null);
   const [dorefetch, setDorefetch] = useState(0);
@@ -140,7 +140,7 @@ const SingleTimeline: NextPage<SingleTimelineProps> = ({ property }) => {
       price: '',
     })
 
-    toggleModalEventNew()
+    toggleModalCreateEvent()
   }
 
   const handleClickNewEvent = () => {
@@ -159,13 +159,13 @@ const SingleTimeline: NextPage<SingleTimelineProps> = ({ property }) => {
       price: "",
     })
 
-    toggleModalEventNew()
+    toggleModalCreateEvent()
   }
 
   const onItemClick = (itemId, e) => {
     // e.currentTarget.blur()
     setEvent(items.find(item => item.id === itemId))
-    toggleModalEventSummary()
+    toggleModalEvent()
 
     setSelectedItem(null)
   }
@@ -201,12 +201,12 @@ const SingleTimeline: NextPage<SingleTimelineProps> = ({ property }) => {
     setSelectedItem(null)
   }
 
-  const toggleModalEventNew = () => {
-    setShowModalEventNew(!showModalEventNew);
+  const toggleModalCreateEvent = () => {
+    setShowModalCreateEvent(!showModalCreateEvent);
   }
 
-  const toggleModalEventSummary = () => {
-    setShowModalEventSummary(!showModalEventSummary);
+  const toggleModalEvent = () => {
+    setShowModalEvent(!showModalEvent);
   }
 
   useEffect(() => {
@@ -237,6 +237,7 @@ const SingleTimeline: NextPage<SingleTimelineProps> = ({ property }) => {
           setItems(newData);
           break;
         case "REFETCH":
+          // setItems([]);
           setDorefetch(dorefetch + 1)
           break;
         default:
@@ -247,15 +248,15 @@ const SingleTimeline: NextPage<SingleTimelineProps> = ({ property }) => {
 
   return (
     <>
-      <ModalEventNew
-        show={showModalEventNew}
-        onClickOverlay={toggleModalEventNew}
+      <ModalCreateEvent
+        show={showModalCreateEvent}
+        onClickOverlay={toggleModalCreateEvent}
         eventNew={eventNew}
         property={property}
       />
-      <ModalEventSummary
-        show={showModalEventSummary}
-        onClickOverlay={toggleModalEventSummary}
+      <ModalEvent
+        show={showModalEvent}
+        onClickOverlay={toggleModalEvent}
         event={event}
         property={property}
       />

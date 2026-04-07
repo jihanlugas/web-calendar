@@ -19,7 +19,7 @@ import TextFieldNumber from "@/components/formik/text-field-number";
 
 type Props = {
   show: boolean;
-  onClickOverlay: (refresh?: boolean) => void;
+  onClickOverlay: () => void;
   property: PropertyView
   eventNew: EventNew
 }
@@ -91,7 +91,7 @@ export function PriceWatcher({ propertyId, mutateGetPrice }: PriceWatcherProps) 
 }
 
 
-const ModalEventNew: NextPage<Props> = ({ show, onClickOverlay, property, eventNew }) => {
+const ModalCreateEvent: NextPage<Props> = ({ show, onClickOverlay, property, eventNew }) => {
 
   const [initFormikValue, setInitFormikValue] = useState(eventNew)
 
@@ -128,7 +128,7 @@ const ModalEventNew: NextPage<Props> = ({ show, onClickOverlay, property, eventN
         setSubmitting(false);
         if (res.status) {
           notif.success(res.message || 'Event created successfully');
-          onClickOverlay(true); // Close modal and refresh data
+          onClickOverlay();
         } else {
           if (res.payload?.listError) {
             setErrors(res.payload.listError);
@@ -154,15 +154,15 @@ const ModalEventNew: NextPage<Props> = ({ show, onClickOverlay, property, eventN
 
   return (
     <Modal show={show && initFormikValue !== null} onClickOverlay={onClickOverlay} layout={'sm:max-w-2xl'}>
-      <div className="">
-        <div className={'p-4 text-xl flex justify-between items-center'}>
-          <div>New Event</div>
-          <button type="button" onClick={() => onClickOverlay()} className={'h-10 w-10 flex justify-center items-center duration-300 rounded text-rose-500 hover:scale-110'}>
+      <div className="p-4">
+        <div className={'text-lg mb-4 flex justify-between items-center'}>
+          <div>Create Event</div>
+          <button type="button" onClick={() => onClickOverlay()} className={'h-10 w-10 flex justify-center items-center duration-300 rounded shadow text-rose-500 hover:scale-110'}>
             <IoClose size={'1.5rem'} className="text-rose-500" />
           </button>
         </div>
         <hr />
-        <div className='p-4 h-[70vh] overflow-y-auto'>
+        <div className='h-[70vh] overflow-y-auto'>
           <Formik
             initialValues={initFormikValue}
             validationSchema={schema}
@@ -176,7 +176,7 @@ const ModalEventNew: NextPage<Props> = ({ show, onClickOverlay, property, eventN
                     propertyId={property.id}
                     mutateGetPrice={mutateGetPrice}
                   />
-                  <Form noValidate={true} className="h-[70vh] flex flex-col">
+                  <Form className="flex flex-col h-full pt-4" noValidate={true}>
                     <div className='mb-4'>
                       <div className="">
                         <TextField
@@ -266,4 +266,4 @@ const ModalEventNew: NextPage<Props> = ({ show, onClickOverlay, property, eventN
   )
 }
 
-export default ModalEventNew;
+export default ModalCreateEvent;

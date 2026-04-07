@@ -77,7 +77,7 @@ export default function Timeline({
   defaultTimeStart = moment().add(-12, 'hour').valueOf(),
   defaultTimeEnd = moment().add(12, 'hour').valueOf(),
   sidebarWidth = 200,
-  lineHeight = 40,
+  lineHeight = 52,
   minZoom = 1000 * 60 * 60 * 4, // 4 jam 
   maxZoom = 1000 * 60 * 60 * 24 * 2, // 2 hari
   stackItems = true,
@@ -89,19 +89,19 @@ export default function Timeline({
 
     const { left: leftResizeProps, right: rightResizeProps } = getResizeProps()
     const itemprops = getItemProps({
-      title: undefined,
+      // title: undefined,
       ...item.itemProps,
     })
 
     let itemClass = ''
-    const selectedItemClass = 'rct-item rounded !font-bold !text-gray-100 !bg-amber-500 border !border-amber-500'
+    const selectedItemClass = 'rct-item rounded !font-bold !text-gray-100 !bg-amber-500 !border-amber-700'
 
     switch (item.status) {
       case EVENT_STATUS_HOLD:
-        itemClass = 'rct-item rounded !font-bold !text-gray-100 !bg-gray-500 border !border-gray-500'
+        itemClass = 'rct-item rounded !font-bold !text-gray-100 !bg-gray-500 !border-gray-700'
         break;
       case EVENT_STATUS_CONFIRM:
-        itemClass = 'rct-item rounded !font-bold !text-gray-100 !bg-blue-500 border !border-blue-500'
+        itemClass = 'rct-item rounded !font-bold !text-gray-100 !bg-blue-500 !border-blue-700'
         break;
       default:
         break;
@@ -120,11 +120,11 @@ export default function Timeline({
         >
           {itemContext.useResizeHandle ? <div key={itemprops.key} {...leftResizeProps} /> : ''}
           <div
-          key={itemprops.key}
+            key={itemprops.key}
             className="rct-item-content"
             style={{ maxHeight: `${itemContext.dimensions.height}` }}
           >
-            {itemContext.title}
+            {item.name}
           </div>
           {itemContext.useResizeHandle ? <div key={itemprops.key} {...rightResizeProps} /> : ''}
         </div>
@@ -189,11 +189,11 @@ export default function Timeline({
       stackItems={stackItems}
       keys={keys}
       rightSidebarWidth={0}
-      itemHeightRatio={0.75}
+      itemHeightRatio={0.8}
       dragSnap={dragSnap}
       timeSteps={undefined}
       itemRenderer={ItemRenderer}
-      itemVerticalGap={8}
+      // itemVerticalGap={16}
       groupRenderer={GroupRenderer}
       {...rest}
     >
@@ -214,13 +214,33 @@ export default function Timeline({
         <DateHeader
           unit='day'
           labelFormat={(range, unit) => range[0].format("DD MMMM YYYY")}
-          className='font-bold !h-8'
+          className='font-bold !h-8 !cursor-auto'
         />
         <DateHeader
           unit="hour"
           labelFormat={(range, unit) => range[0].format("HH")}
-          className='font-bold !h-8'
+          className='font-bold !h-8 !cursor-auto'
         />
+        {/* <DateHeader
+          unit="day"
+          className={'!h-10'}
+          labelFormat={(range, unit) => range[0].format("DD MMMM YYYY")}
+          intervalRenderer={({ getIntervalProps, intervalContext, data }) => {
+            return <div className='h-full flex justify-center items-center border-x border-primary-600 text-gray-50 font-bold' {...getIntervalProps()}>
+              {intervalContext.intervalText}
+            </div>
+          }}
+        />
+        <DateHeader
+          unit="hour"
+          labelFormat={(range, unit) => range[0].format("HH")}
+          className={'!h-8 bg-gray-200'}
+          intervalRenderer={({ getIntervalProps, intervalContext, data }) => {
+            return <div className='h-full flex justify-center items-center border border-gray-600 text-gray-800' {...getIntervalProps()}>
+              {intervalContext.intervalText}
+            </div>
+          }}
+        /> */}
       </TimelineHeaders>
     </TimelineLib>
   );

@@ -1,210 +1,130 @@
-import { NextPage } from "next";
+import { NextPage } from "next/types";
 import { IoClose } from "react-icons/io5";
-import Modal from "@/components/modal/modal"
+import Modal from "./modal";
+import { PropertyView } from "@/types/property";
+import { EventView } from "@/types/event";
 import { Form, Formik, FormikValues } from "formik";
-import TextField from "@/components/formik/text-field";
-import DropdownField from "@/components/formik/dropdown-field";
-import DateField from '@/components/formik/date-field';
-import ButtonSubmit from "@/components/formik/button-submit";
-import { Dispatch, useEffect, useState } from "react";
 import * as Yup from 'yup';
-import { displayDateTime, displayDuration, displayMoney } from "@/utils/formater";
+import TextField from "@/components/formik/text-field";
+import { EVENT_STATUS, EVENT_STATUS_CONFIRM, EVENT_STATUS_HOLD } from "@/utils/constant";
+import DropdownField from "@/components/formik/dropdown-field";
 import TextAreaField from "@/components/formik/text-area-field";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import ButtonSubmit from "@/components/formik/button-submit";
+import { useMutation } from "@tanstack/react-query";
 import { Api } from "@/lib/api";
+import { useEffect, useState } from "react";
+import { displayDateTime, displayDuration, displayMoney } from "@/utils/formater";
+import { PriceWatcher } from "./modal-create-event";
+import DateField from "../formik/date-field";
+import TextFieldNumber from "../formik/text-field-number";
 import notif from "@/utils/notif";
-import ModalDeleteVerify from "./modal-delete-verify";
-import moment from "moment";
-import { PageProduct, ProductView } from "@/types/product";
-import { EVENT_STATUS } from "@/utils/constant";
+import { ImSpinner2 } from 'react-icons/im';
 
 type Props = {
   show: boolean;
-  onClickOverlay: (refresh?: boolean) => void;
-  newEvent: any;
-  setItems: Dispatch<any[]>;
-  property: any
+  onClickOverlay: () => void;
+  property: PropertyView
+  event: EventView
 }
 
 const schema = Yup.object().shape({
   name: Yup.string().required('Required'),
   description: Yup.string(),
-  propertyId: Yup.string().required('Required'),
   unitId: Yup.string().required('Required'),
   startDt: Yup.string().required('Required'),
-  endDt: Yup.string().required('Required'),
+  endDt: Yup.string()
+    .required('Required')
+    .test(
+      'is-after-start',
+      'End date harus lebih besar dari start date',
+      function (value) {
+        const { startDt } = this.parent;
+        if (!startDt || !value) return true;
+
+        return new Date(value) > new Date(startDt);
+      }
+    ),
+  price: Yup.number().required('Required'),
 });
 
-const ModalEvent: NextPage<Props> = ({ show, onClickOverlay, newEvent, property, setItems }) => {
-  const [newData, setNewData] = useState(true);
 
-  useEffect(() => {
-    setNewData(newEvent && newEvent.id !== '' ? false : true);
-  }, [newEvent]);
+const ModalEvent: NextPage<Props> = ({ show, onClickOverlay, property, event }) => {
+
+  const [tab, setTab] = useState<'summary' | 'edit'>('summary')
 
   return (
     <Modal show={show} onClickOverlay={onClickOverlay} layout={'sm:max-w-2xl'}>
       <div className="p-4">
-        <div className={'text-xl mb-4 flex justify-between items-center'}>
-          <div>Event</div>
-          <button type="button" onClick={() => onClickOverlay()} className={'h-10 w-10 flex justify-center items-center duration-300 rounded text-rose-500 hover:scale-110'}>
-            <IoClose size={'1.5rem'} className="text-rose-500" />
-          </button>
+        <div className={'text-lg mb-4 flex justify-between items-center border-b'}>
+          <div className="flex">
+            <button
+              onClick={() => setTab('summary')}
+              className={
+                tab === 'summary'
+                  ? 'p-2 pb-4 mr-4 border-b-2 border-primary-500 text-primary-500'
+                  : 'p-2 pb-4 mr-4 border-b-2 border-transparent hover:border-primary-400'
+              }
+            >
+              Summary
+            </button>
+
+            <button
+              onClick={() => setTab('edit')}
+              className={
+                tab === 'edit'
+                  ? 'p-2 pb-4 mr-4 border-b-2 border-primary-500 text-primary-500'
+                  : 'p-2 pb-4 mr-4 border-b-2 border-transparent hover:border-primary-400'
+              }
+            >
+              Edit Event
+            </button>
+          </div>
+          <div className="">
+            <button type="button" onClick={() => onClickOverlay()} className={'h-10 w-10 flex justify-center items-center duration-300 rounded shadow text-rose-500 hover:scale-110'}>
+              <IoClose size={'1.5rem'} className="text-rose-500" />
+            </button>
+          </div>
         </div>
-        {newData ? (
-          <ModalEventForm
-            onClickOverlay={onClickOverlay}
-            event={newEvent}
-            units={property.units}
-            setItems={setItems}
-          />
-        ) : (
-          <ModalEventTab
-            show={show}
-            onClickOverlay={onClickOverlay}
-            newEvent={newEvent}
-            property={property}
-            setItems={setItems}
-          />
+        {event && (
+          <>
+            {tab === 'summary' && <SummaryTab event={event} />}
+            {tab === 'edit' && <EditTab event={event} property={property} onClickOverlay={onClickOverlay} setTab={setTab} />}
+          </>
         )}
       </div>
     </Modal>
   )
 }
 
-const ModalEventTab = ({ show, onClickOverlay, newEvent, property, setItems }) => {
-
-  const [event, setEvent] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState("1");
-
-  const tabs = [
-    { id: "1", label: "Summary" },
-    { id: "2", label: "Product" },
-    { id: "3", label: "Edit" },
-  ];
-
-  const { data: dataEvent, isLoading } = useQuery({
-    queryKey: ['event', newEvent?.id],
-    queryFn: () => newEvent?.id && Api.get('/event/' + newEvent?.id),
-  })
-
-  useEffect(() => {
-    if (dataEvent) {
-      if (dataEvent?.status) {
-        setEvent(dataEvent.payload)
-      } else {
-        setEvent(null)
-      }
-    } else {
-      setEvent(null)
-    }
-  }, [dataEvent])
-
-  useEffect(() => {
-    if (!show) {
-      setActiveTab("1")
-    }
-  }, [show])
-
-  if (!show) return null
-
-  return (
-    <>
-      {isLoading ? (
-        <div>Loading</div>
-      ) : (
-        <>
-          <div className="flex space-x-2 border-b border-gray-300 -my-4">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`px-4 py-2 font-medium transition-colors border-b-2 ${activeTab === tab.id
-                  ? "border-blue-500 text-blue-600"
-                  : "border-transparent text-gray-500 hover:text-blue-500"
-                  }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-          <div className="mt-6 h-[70vh] overflow-y-auto">
-            {activeTab === "1" && (
-              <ModalEventSummary
-                event={event}
-                property={property}
-              />
-            )}
-            {activeTab === "2" && (
-              <ModalEventProduct
-                event={event}
-              />
-            )}
-            {activeTab === "3" && (
-              <ModalEventForm
-                onClickOverlay={onClickOverlay}
-                event={event}
-                units={property.units}
-                setItems={setItems}
-              />
-            )}
-          </div>
-        </>
-      )}
-    </>
-  )
+interface SummaryTabProps {
+  event: EventView
 }
 
-const ModalEventSummary = ({ event, property }) => {
-  const getBilledHour = (
-    startDt: string | Date,
-    endDt: string | Date
-  ): number => {
-    if (!startDt || !endDt) return 0;
+const SummaryTab: NextPage<SummaryTabProps> = ({ event }) => {
+  const { mutate: mutateUpdate, isPending: isPendingUpdate } = useMutation({
+    mutationKey: ['event', 'update', event.id],
+    mutationFn: (val: EventView) => Api.put(`/event/${event.id}`, val),
+  });
 
-    const start = moment(startDt);
-    const end = moment(endDt);
-
-    const durationInMinutes = end.diff(start, 'minutes');
-    if (durationInMinutes <= 0) return 0;
-
-    // Round up to the nearest 30 minutes
-    const roundedMinutes = Math.ceil(durationInMinutes / 30) * 30;
-    const hours = roundedMinutes / 60;
-
-    return hours;
-  };
-
-  const getTotalPrice = (
-    pricePerHour: number,
-    startDt: string | Date,
-    endDt: string | Date
-  ): number => {
-    return getBilledHour(startDt, endDt) * pricePerHour;
-  };
-
-  if (!event) return null;
+  const handleSetStatusConfirm = () => {
+    event.status = EVENT_STATUS_CONFIRM
+    mutateUpdate(event, {
+      onSuccess: ({ status, message, payload }) => {
+        if (status) {
+          notif.success(message);
+        } else {
+          notif.error(message);
+        }
+      },
+      onError: () => {
+        notif.error('Please cek you connection');
+      }
+    });
+  }
 
   return (
-    <div>
-      <div>
-        <div className="text-lg py-4">Property</div>
-        <div className="grid grid-cols-4 gap-4 mb-2">
-          <div className={''}>{'Property'}</div>
-          <div className={'col-span-3'}>{event.propertyName || '-'}</div>
-        </div>
-        <div className="grid grid-cols-4 gap-4 mb-2">
-          <div className={''}>{'Unit'}</div>
-          <div className={'col-span-3'}>{event.unitName || '-'}</div>
-        </div>
-        <div className="grid grid-cols-4 gap-4 mb-2">
-          <div className={''}>{'Price'}</div>
-          <div className={'col-span-3'}>{displayMoney(property.price) || '-'}</div>
-        </div>
-      </div>
-      <hr className="mb-4" />
-      <div>
-        <div className="text-lg py-4">Event</div>
+    <div className='h-[70vh] overflow-y-auto'>
+      <div className="flex flex-col h-full">
         <div className="grid grid-cols-4 gap-4 mb-2">
           <div className={''}>{'Event'}</div>
           <div className={'col-span-3'}>{event.name}</div>
@@ -214,6 +134,21 @@ const ModalEventSummary = ({ event, property }) => {
           <div className={'col-span-3'}>{event.description || '-'}</div>
         </div>
         <div className="grid grid-cols-4 gap-4 mb-2">
+          <div className={''}>{'Status'}</div>
+          {event.status === EVENT_STATUS_HOLD && (
+            <div className={'col-span-3 flex items-center'}>
+              <div className="mr-2 h-5 w-8 border-2 border-gray-600 bg-gray-500"></div>
+              <div className="font-bold text-base">{event.status || '-'}</div>
+            </div>
+          )}
+          {event.status === EVENT_STATUS_CONFIRM && (
+            <div className={'col-span-3 flex items-center'}>
+              <div className="mr-2 h-5 w-8 border-2 border-blue-600 bg-blue-500"></div>
+              <div className="font-bold text-base">{event.status || '-'}</div>
+            </div>
+          )}
+        </div>
+        <div className="grid grid-cols-4 gap-4 mb-2">
           <div className={''}>{'Start Date'}</div>
           <div className={'col-span-3'}>{displayDateTime(event.startDt) || '-'}</div>
         </div>
@@ -221,270 +156,208 @@ const ModalEventSummary = ({ event, property }) => {
           <div className={''}>{'End Date'}</div>
           <div className={'col-span-3'}>{displayDateTime(event.endDt) || '-'}</div>
         </div>
-        <div className="grid grid-cols-4 gap-4 mb-2">
-          <div className={''}>{'Duration'}</div>
-          <div className={'col-span-3'}>{displayDuration(event.startDt, event.endDt) || '-'}</div>
+        <div className="mt-4">
+          <div>Order Summary</div>
+          <div className="grid grid-cols-4 gap-4 mb-2">
+            <div className={''}>{event.unitName}</div>
+            <div className={'col-span-3'}>{displayMoney(event.price)}</div>
+          </div>
+          <div className="grid grid-cols-4 gap-4 mb-2">
+            <div className={''}>{'Aqua 300ml'}</div>
+            <div className={'col-span-3'}>{displayMoney(50000)}</div>
+          </div>
+          <div className="grid grid-cols-4 gap-4 mb-2">
+            <div className={''}>{'Pocari Sweet 450ml'}</div>
+            <div className={'col-span-3'}>{displayMoney(12000)}</div>
+          </div>
         </div>
-        <div className="grid grid-cols-4 gap-4 mb-2">
-          <div className={''}>{'Billed'}</div>
-          <div className={'col-span-3'}>{getBilledHour(event.startDt, event.endDt) + ' hour' || '-'}</div>
-        </div>
-        <div className="grid grid-cols-4 gap-4 mb-2">
-          <div className={''}>{'Price'}</div>
-          <div className={'col-span-3'}>{displayMoney(getTotalPrice(property.price, event.startDt, event.endDt)) || '-'}</div>
-        </div>
-      </div>
-      <hr className="mb-4" />
-      <div>
-        <div className="text-lg py-4">Product</div>
-      </div>
-      <hr className="mb-4" />
-    </div>
-  )
-}
-const ModalEventProduct = ({ event }) => {
-  const [product, setProduct] = useState<ProductView[]>([]);
-
-  const [pageRequest, setPageRequest] = useState<PageProduct>({
-    limit: -1,
-    page: 1,
-    companyId: event.companyId,
-    preloads: "",
-  });
-
-  const { isLoading, data, refetch } = useQuery({
-    queryKey: ['product', pageRequest],
-    queryFn: ({ queryKey }) => Api.get('/product', queryKey[1] as object),
-  });
-
-  useEffect(() => {
-    if (data?.status) {
-      setProduct(data.payload.list);
-    }
-  }, [data]);
-
-  if (!event) return null;
-
-  return (
-    <div>
-      <div className="text-lg py-4">Product</div>
-      <div className="grid grid-cols-4 gap-4">
-        {product.map((item, key) => (
-          <div key={key} className="rounded overflow-hidden shadow">
-            <div className="h-28 bg-red-400"></div>
-            <div className="p-2 text-center">
-              <div className="text-sm h-12">{item.name}</div>
-              <div className="text-primary-500">{displayMoney(item.price)}</div>
+        {event.status === EVENT_STATUS_HOLD && (
+          <div className="mt-auto">
+            <div className="my-2">
+              <button
+                className={'duration-300 bg-primary-500 border-primary-500 hover:bg-primary-600 hover:border-primary-600 focus:border-primary-600 h-10 rounded-md text-gray-50 font-semibold px-4 w-full shadow-lg shadow-primary-600/20'}
+                type="button"
+                onClick={handleSetStatusConfirm}
+                disabled={isPendingUpdate}
+              >
+                <div className={'flex justify-center items-center'}>
+                  {isPendingUpdate ? <ImSpinner2 className={'animate-spin'} size={'1.5rem'} /> : 'Set status confirm'}
+                </div>
+              </button>
             </div>
           </div>
-        ))}
+        )}
+        {event.status === EVENT_STATUS_CONFIRM && (
+          <div className="mt-auto">
+            <div className="my-2">
+              <button
+                className={'duration-300 bg-primary-500 border-primary-500 hover:bg-primary-600 hover:border-primary-600 focus:border-primary-600 h-10 rounded-md text-gray-50 font-semibold px-4 w-full shadow-lg shadow-primary-600/20'}
+                type="button"
+                onClick={handleSetStatusConfirm}
+                disabled={isPendingUpdate}
+              >
+                <div className={'flex justify-center items-center'}>
+                  {isPendingUpdate ? <ImSpinner2 className={'animate-spin'} size={'1.5rem'} /> : 'Payment'}
+                </div>
+              </button>
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   )
 }
 
+interface EditTabProps {
+  property: PropertyView
+  event: EventView
+  onClickOverlay: () => void
+  setTab?: (tab: 'summary' | 'edit') => void
+}
 
-
-const ModalEventForm = ({ onClickOverlay, event, units, setItems }) => {
+const EditTab: NextPage<EditTabProps> = ({ property, event, onClickOverlay, setTab }) => {
 
   const [initFormikValue, setInitFormikValue] = useState(event)
-  const [showModalDelete, setShowModalDelete] = useState<boolean>(false);
-  const [deleteId, setDeleteId] = useState<string>('');
-  const [deleteVerify, setDeleteVerify] = useState<string>('');
-
-  const { mutate: mutateCreate, isPending: isPendingCreate } = useMutation({
-    mutationKey: ['event', 'create'],
-    mutationFn: (val: FormikValues) => Api.post('/event', val),
-  });
 
   const { mutate: mutateUpdate, isPending: isPendingUpdate } = useMutation({
-    mutationKey: ['event', event?.id, 'update'],
-    mutationFn: (val: FormikValues) => Api.put('/event/' + event?.id, val),
+    mutationKey: ['event', 'update', event.id],
+    mutationFn: (val: FormikValues) => Api.put(`/event/${event.id}`, val),
   });
 
-  const { mutate: mutateDelete, isPending: isPendingDelete } = useMutation({
-    mutationKey: ['event', 'delete', deleteId],
-    mutationFn: (id: string) => Api.delete('/event/' + id)
+  const { mutate: mutateGetPrice } = useMutation({
+    mutationKey: ['property', 'get-price'],
+    mutationFn: (payload: { propertyId: string; startDt: string; endDt: string }) =>
+      Api.post('/property/get-price', payload)
+    // onSuccess: (res) => {
+    //   if (res.status) {
+    //     formRef.current.setFieldValue('price', (res.payload || null));
+    //   } else {
+    //     notif.error(res.message || 'Failed to get price');
+    //   }
+    // },
+    // onError: (error: any) => {
+    //   notif.error(error.message || 'An error occurred while fetching price');
+    // }
   });
 
-  useEffect(() => {
-    if (event) {
-      setInitFormikValue(event)
-    }
-  }, [event])
-
-  const toggleModalDelete = (id = '', verify = '') => {
-    setDeleteId(id);
-    setDeleteVerify(verify);
-    setShowModalDelete(!showModalDelete);
-  };
-
-  const handleSubmit = (values, formikHelpers) => {
-    if (values.id !== '') {
-      mutateUpdate(values, {
-        onSuccess: ({ status, message, payload }) => {
-          if (status) {
-            setItems([])
-            onClickOverlay(true)
-            notif.success(message);
-          } else if (payload?.listError) {
-            formikHelpers.setErrors(payload.listError);
-          } else {
-            notif.error(message);
-          }
-        },
-        onError: () => {
-          notif.error('Please cek you connection');
-        }
-      })
-    } else {
-      mutateCreate(values, {
-        onSuccess: ({ status, message, payload }) => {
-          if (status) {
-            onClickOverlay(true)
-            notif.success(message);
-          } else if (payload?.listError) {
-            formikHelpers.setErrors(payload.listError);
-          } else {
-            notif.error(message);
-          }
-        },
-        onError: () => {
-          notif.error('Please cek you connection');
-        }
-      });
-    }
-  }
-
-  const handleDelete = () => {
-    mutateDelete(deleteId, {
-      onSuccess: ({ status, message }) => {
+  const handleSubmit = (values: any, { setSubmitting, setErrors }: any) => {
+    mutateUpdate(values, {
+      onSuccess: ({ status, message, payload }) => {
         if (status) {
+          setSubmitting(false);
           notif.success(message);
-          setDeleteId('');
-          toggleModalDelete();
-          onClickOverlay(true)
+          onClickOverlay()
+          setTab('summary')
+        } else if (payload?.listError) {
+          setErrors(payload.listError);
         } else {
           notif.error(message);
         }
       },
-      onError: () => {
-        notif.error('Please cek you connection');
-      },
+      onError: (error: any) => {
+        setSubmitting(false);
+        notif.error(error.message || 'An error occurred while updating event');
+      }
     });
-  };
-
-  const handleClickDelete = (id, name) => {
-    toggleModalDelete(id, name)
   }
 
-  if (!event) return null;
-
   return (
-    <div className='h-[70vh]'>
-      <ModalDeleteVerify
-        show={showModalDelete}
-        onClickOverlay={toggleModalDelete}
-        onDelete={handleDelete}
-        verify={deleteVerify}
-        isLoading={isPendingDelete}
-      >
-        <div>
-          <div className='mb-4'>Are you sure ?</div>
-          <div className='text-sm mb-4 text-gray-700'>Data related to this will also be deleted</div>
-        </div>
-      </ModalDeleteVerify>
+    <div className='h-[70vh] overflow-y-auto'>
       <Formik
         initialValues={initFormikValue}
         validationSchema={schema}
         enableReinitialize={true}
-        onSubmit={(values, { setErrors }) => handleSubmit(values, setErrors)}
+        onSubmit={handleSubmit}
       >
-        {({ values }) => {
+        {({ values, setFieldValue }) => {
           return (
-            <Form noValidate={true} className="h-[70vh] flex flex-col">
-              <div className='mb-4'>
-                <div className="">
-                  <TextField
-                    label={'Event Name'}
-                    name={'name'}
-                    type={'text'}
-                    placeholder={'Event Name'}
-                    required
-                  />
+            <>
+              <PriceWatcher
+                propertyId={property.id}
+                mutateGetPrice={mutateGetPrice}
+              />
+              <Form className="flex flex-col h-full pt-4" noValidate={true}>
+                <div className='mb-4'>
+                  <div className="">
+                    <TextField
+                      label={'Event Name'}
+                      name={'name'}
+                      type={'text'}
+                      placeholder={'Event Name'}
+                      required
+                    />
+                  </div>
+                  <div className="">
+                    <TextAreaField
+                      label={'Description'}
+                      name={'description'}
+                      placeholder={'Description'}
+                    />
+                  </div>
+                  <div className="">
+                    <DropdownField
+                      label={"Unit"}
+                      name={"unitId"}
+                      items={property.units}
+                      keyValue={"id"}
+                      keyLabel={"name"}
+                      placeholder="Select Unit"
+                      placeholderValue={""}
+                      required
+                    />
+                  </div>
+                  <div className="">
+                    <DropdownField
+                      label={"Status"}
+                      name={"status"}
+                      items={EVENT_STATUS}
+                      keyValue={"value"}
+                      keyLabel={"label"}
+                      placeholder="Select Status"
+                      placeholderValue={""}
+                      required
+                    />
+                  </div>
+                  <div className=''>
+                    <DateField
+                      label='Start Date'
+                      name='startDt'
+                      required
+                    />
+                  </div>
+                  <div className=''>
+                    <DateField
+                      label='End Date'
+                      name='endDt'
+                      required
+                    />
+                  </div>
+                  <div className="">
+                    <TextFieldNumber
+                      label={'Price'}
+                      name={`price`}
+                      placeholder={'1...'}
+                      required
+                    />
+                  </div>
                 </div>
-                <div className="">
-                  <TextAreaField
-                    label={'Description'}
-                    name={'description'}
-                    placeholder={'Description'}
-                  />
+                <div className="mt-auto">
+                  <div className="my-2">
+                    <ButtonSubmit
+                      label={'Save'}
+                      disabled={isPendingUpdate}
+                      loading={isPendingUpdate}
+                    />
+                  </div>
                 </div>
-                <div className="">
-                  <DropdownField
-                    label={"Unit"}
-                    name={"unitId"}
-                    items={units}
-                    keyValue={"id"}
-                    keyLabel={"name"}
-                    placeholder="Select Unit"
-                    placeholderValue={""}
-                    required
-                  />
-                </div>
-                <div className="">
-                  <DropdownField
-                    label={"Status"}
-                    name={"status"}
-                    items={EVENT_STATUS}
-                    keyValue={"value"}
-                    keyLabel={"label"}
-                    placeholder="Select Status"
-                    placeholderValue={""}
-                    required
-                  />
-                </div>
-                <div className=''>
-                  <DateField
-                    label='Start Date'
-                    name='startDt'
-                    required
-                  />
-                </div>
-                <div className=''>
-                  <DateField
-                    label='End Date'
-                    name='endDt'
-                    required
-                  />
-                </div>
-              </div>
-              <div className="mt-auto">
-                <div className={''}>
-                  <ButtonSubmit
-                    label={'Save'}
-                    disabled={isPendingCreate || isPendingUpdate}
-                    loading={isPendingCreate || isPendingUpdate}
-                  />
-                </div>
-                {event && event.id && (
-                  <div className="mt-4">
-                    <button
-                      className={'duration-300 bg-rose-500 border-rose-500 hover:bg-rose-600 hover:border-rose-600 focus:border-rose-600 h-10 rounded-md text-gray-50 font-semibold px-4 w-full shadow-lg shadow-rose-600/20'}
-                      type="button"
-                      onClick={() => handleClickDelete(event.id, event.name)}
-                    >
-                      Delete
-                    </button>
+                {process.env.DEBUG === 'true' && (
+                  <div className="hidden md:flex mb-4 p-4 whitespace-pre-wrap">
+                    {JSON.stringify(values, null, 4)}
                   </div>
                 )}
-              </div>
-              {process.env.DEBUG === 'true' && (
-                <div className="hidden md:flex mb-4 p-4 whitespace-pre-wrap">
-                  {JSON.stringify(values, null, 4)}
-                </div>
-              )}
-            </Form>
+              </Form>
+            </>
           );
         }}
       </Formik>

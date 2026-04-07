@@ -146,106 +146,106 @@ const ModalPropertyprice: NextPage<Props> = ({ show, onClickOverlay, id, propert
   return (
     <Modal show={show} onClickOverlay={onClickOverlay} layout={'sm:max-w-2xl'}>
       <div className="p-4">
-        <div className={'text-xl mb-4 flex justify-between items-center'}>
+        <div className={'text-lg mb-4 flex justify-between items-center'}>
           <div>{selectedId === '' ? 'Create Price' : 'Update Price'}</div>
           <button type="button" onClick={() => onClickOverlay('', true)} className={'h-10 w-10 flex justify-center items-center duration-300 rounded shadow text-rose-500 hover:scale-110'}>
             <IoClose size={'1.5rem'} className="text-rose-500" />
           </button>
         </div>
         <hr className="mb-4" />
-        {isLoading ? (
-          <div className="flex justify-center items-center">
-            <div className="py-20">
-              <AiOutlineLoading3Quarters className={'animate-spin'} size={'5rem'} />
+        <div className='h-[70vh] overflow-y-auto'>
+          {isLoading ? (
+            <div className="flex justify-center items-center">
+              <div className="py-20">
+                <AiOutlineLoading3Quarters className={'animate-spin'} size={'5rem'} />
+              </div>
             </div>
-          </div>
-        ) : (
-          <div>
-            <div className="ml-auto">
-              <Formik
-                initialValues={initFormikValue}
-                validationSchema={schema}
-                enableReinitialize={true}
-                onSubmit={(values, formikHelpers) => handleSubmit(values, formikHelpers)}
-              >
-                {({ values, setFieldValue }) => {
-                  return (
-                    <Form noValidate={true}>
-                      <div className="mb-4">
-                        <TextFieldNumber
-                          label={'Price'}
-                          name={`price`}
-                          placeholder={'100...'}
-                        />
-                      </div>
-                      {values?.priority !== 1 && (
-                        <>
-                          <div className="mb-4">
-                            <DateField
-                              label='Start Time'
-                              name='startTime'
-                              dateFormat="HH:mm"
-                              showTimeSelectOnly={true}
-                              handleClear={true}
-                              placeholderText={"Start Time"}
-                            />
-                          </div>
-                          <div className="mb-4">
-                            <DateField
-                              label='End Time'
-                              name='endTime'
-                              dateFormat="HH:mm"
-                              showTimeSelectOnly={true}
-                              handleClear={true}
-                              placeholderText={"Start Time"}
-                            />
-                          </div>
-                        </>
-                      )}
-                      <div className="mb-4">
-                        {DAYMAP.map((day, index) => (
-                          <div key={index} className="mb-2">
-                            <CheckboxField
-                              label={day}
-                              name="weekdays"
-                              className="pb-2 pt-2"
-                              disabled={values?.priority === 1}
-                              value={index}
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  setFieldValue('weekdays', [...values.weekdays, index].sort((a, b) => a - b));
-                                } else {
-                                  setFieldValue(
-                                    'weekdays',
-                                    values.weekdays.filter((v: number) => v !== index)
-                                  );
-                                }
-                              }}
-                            />
-                          </div>
-                        ))}
-                      </div>
-                      <div className="mb-4">
+          ) : (
+            <Formik
+              initialValues={initFormikValue}
+              validationSchema={schema}
+              enableReinitialize={true}
+              onSubmit={(values, formikHelpers) => handleSubmit(values, formikHelpers)}
+            >
+              {({ values, setFieldValue }) => {
+                return (
+                  <Form className="flex flex-col h-full pt-4" noValidate={true}>
+                    <div className="mb-4">
+                      <TextFieldNumber
+                        label={'Price'}
+                        name={`price`}
+                        placeholder={'100...'}
+                      />
+                    </div>
+                    {values?.priority !== 1 && (
+                      <>
+                        <div className="mb-4">
+                          <DateField
+                            label='Start Time'
+                            name='startTime'
+                            dateFormat="HH:mm"
+                            showTimeSelectOnly={true}
+                            handleClear={true}
+                            placeholderText={"Start Time"}
+                          />
+                        </div>
+                        <div className="mb-4">
+                          <DateField
+                            label='End Time'
+                            name='endTime'
+                            dateFormat="HH:mm"
+                            showTimeSelectOnly={true}
+                            handleClear={true}
+                            placeholderText={"Start Time"}
+                          />
+                        </div>
+                      </>
+                    )}
+                    <div className="mb-4">
+                      {DAYMAP.map((day, index) => (
+                        <div key={index} className="mb-2">
+                          <CheckboxField
+                            label={day}
+                            name="weekdays"
+                            className="pb-2 pt-2"
+                            disabled={values?.priority === 1}
+                            value={index}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setFieldValue('weekdays', [...values.weekdays, index].sort((a, b) => a - b));
+                              } else {
+                                setFieldValue(
+                                  'weekdays',
+                                  values.weekdays.filter((v: number) => v !== index)
+                                );
+                              }
+                            }}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-auto">
+                      <div className="my-2">
                         <ButtonSubmit
                           label={'Save'}
                           disabled={isPendingCreate || isPendingUpdate}
                           loading={isPendingCreate || isPendingUpdate}
                         />
                       </div>
-                      {process.env.DEBUG === 'true' && (
-                        <div className="hidden md:flex mb-4 p-4 whitespace-pre-wrap">
-                          {JSON.stringify(values, null, 4)}
-                        </div>
-                      )}
-                    </Form>
-                  )
-                }}
-              </Formik>
-            </div>
-          </div>
-        )}
+                    </div>
+                    {process.env.DEBUG === 'true' && (
+                      <div className="hidden md:flex mb-4 p-4 whitespace-pre-wrap">
+                        {JSON.stringify(values, null, 4)}
+                      </div>
+                    )}
+                  </Form>
+                )
+              }}
+            </Formik>
+          )}
+        </div>
       </div>
-    </Modal>
+    </Modal >
   );
 }
 

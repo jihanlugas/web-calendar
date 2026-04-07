@@ -60,7 +60,6 @@ const ModalEditUnit: NextPage<Props> = ({ show, onClickOverlay, id, property }) 
   });
 
   const handleSubmit = async (values, formikHelpers) => {
-    console.log('handleSubmit', handleSubmit)
     if (selectedId === '') {
       values.companyId = property.companyId
       values.propertyId = property.id
@@ -128,61 +127,66 @@ const ModalEditUnit: NextPage<Props> = ({ show, onClickOverlay, id, property }) 
   return (
     <Modal show={show} onClickOverlay={onClickOverlay} layout={'sm:max-w-lg'}>
       <div className="p-4">
-        <div className={'text-xl mb-4 flex justify-between items-center'}>
+        <div className={'text-lg mb-4 flex justify-between items-center'}>
           <div>{selectedId === '' ? 'Create Unit' : 'Update Unit'}</div>
           <button type="button" onClick={() => onClickOverlay('', true)} className={'h-10 w-10 flex justify-center items-center duration-300 rounded shadow text-rose-500 hover:scale-110'}>
             <IoClose size={'1.5rem'} className="text-rose-500" />
           </button>
         </div>
         <hr className="mb-4" />
-        {isLoading ? (
-          <div className="flex justify-center items-center">
-            <div className="py-20">
-              <AiOutlineLoading3Quarters className={'animate-spin'} size={'5rem'} />
+        <div className='h-[70vh] overflow-y-auto'>
+          {isLoading ? (
+            <div className="flex justify-center items-center">
+              <div className="py-20">
+                <AiOutlineLoading3Quarters className={'animate-spin'} size={'5rem'} />
+              </div>
             </div>
-          </div>
-        ) : (
-          <div>
-            <div className="ml-auto">
-              <Formik
-                initialValues={initFormikValue}
-                validationSchema={schema}
-                enableReinitialize={true}
-                onSubmit={(values, formikHelpers) => handleSubmit(values, formikHelpers)}
-              >
-                {({ }) => {
-                  return (
-                    <Form noValidate={true}>
-                      <div className="mb-4">
-                        <TextField
-                          label={'Unit Name'}
-                          name={'name'}
-                          type={'text'}
-                          placeholder={'Unit Name'}
-                          required
-                        />
-                      </div>
-                      <div className="mb-4">
-                        <TextAreaField
-                          label={'Description'}
-                          name={'description'}
-                          placeholder={'Description'}
-                        />
-                      </div>
-                      <div className="mb-4">
+          ) : (
+            <Formik
+              initialValues={initFormikValue}
+              validationSchema={schema}
+              enableReinitialize={true}
+              onSubmit={(values, formikHelpers) => handleSubmit(values, formikHelpers)}
+            >
+              {({ values }) => {
+                return (
+                  <Form className="flex flex-col h-full pt-4" noValidate={true}>
+                    <div className="mb-4">
+                      <TextField
+                        label={'Unit Name'}
+                        name={'name'}
+                        type={'text'}
+                        placeholder={'Unit Name'}
+                        required
+                      />
+                    </div>
+                    <div className="mb-4">
+                      <TextAreaField
+                        label={'Description'}
+                        name={'description'}
+                        placeholder={'Description'}
+                      />
+                    </div>
+                    <div className="mt-auto">
+                      <div className="my-2">
                         <ButtonSubmit
                           label={'Save'}
                           disabled={isPendingCreate || isPendingUpdate}
                           loading={isPendingCreate || isPendingUpdate}
                         />
                       </div>
-                    </Form>
-                  )
-                }}
-              </Formik>
-            </div>
-          </div>
-        )}
+                    </div>
+                    {process.env.DEBUG === 'true' && (
+                      <div className="hidden md:flex mb-4 p-4 whitespace-pre-wrap">
+                        {JSON.stringify(values, null, 4)}
+                      </div>
+                    )}
+                  </Form>
+                )
+              }}
+            </Formik>
+          )}
+        </div>
       </div>
     </Modal>
   );

@@ -2598,7 +2598,7 @@ queue-microtask@^1.2.2:
 
 react-calendar-timeline@^0.30.0-beta.4:
   version "0.30.0-beta.4"
-  resolved "https://registry.npmjs.org/react-calendar-timeline/-/react-calendar-timeline-0.30.0-beta.4.tgz"
+  resolved "https://registry.yarnpkg.com/react-calendar-timeline/-/react-calendar-timeline-0.30.0-beta.4.tgz#84eb097666170778854166f6684727a02e199c71"
   integrity sha512-N58m+0jAt0pACe7cJghceNLjBzqoDmJ4QvJrPsDWRBdIrf6VE4u59r2U9J2DclZdWY404O+9rcTBAuGy3Q4U0A==
   dependencies:
     classnames "^2.5.1"
