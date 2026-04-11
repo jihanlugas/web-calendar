@@ -28,6 +28,7 @@ type Props = {
 type PriceWatcherProps = {
   propertyId: string;
   mutateGetPrice: UseMutateFunction<any, unknown, { propertyId: string; startDt: string; endDt: string }, unknown>;
+  skipInitialUpdate?: boolean; // Optional flag to skip initial update
 };
 
 
@@ -53,13 +54,20 @@ const schema = Yup.object().shape({
 
 
 
-export function PriceWatcher({ propertyId, mutateGetPrice }: PriceWatcherProps) {
-  const { values, setFieldValue } = useFormikContext<any>();
+export function PriceWatcher({ propertyId, mutateGetPrice, skipInitialUpdate = false }: PriceWatcherProps) {
+  const { values, setFieldValue, initialValues } = useFormikContext<any>();
 
   useEffect(() => {
     if (!values) return;
 
     const { startDt, endDt } = values;
+
+    // Jika skipInitialUpdate true, skip jika tanggal sama dengan initial
+    if (skipInitialUpdate && initialValues) {
+      if (startDt === initialValues.startDt && endDt === initialValues.endDt) {
+        return;
+      }
+    }
 
     if (!propertyId || !startDt || !endDt) return;
 
@@ -85,7 +93,7 @@ export function PriceWatcher({ propertyId, mutateGetPrice }: PriceWatcherProps) 
         }
       }
     );
-  }, [propertyId, values?.startDt, values?.endDt]);
+  }, [propertyId, values?.startDt, values?.endDt, skipInitialUpdate]);
 
   return null;
 }
@@ -162,7 +170,7 @@ const ModalCreateEvent: NextPage<Props> = ({ show, onClickOverlay, property, eve
           </button>
         </div>
         <hr />
-        <div className='h-[70vh] overflow-y-auto'>
+        <div className='h-[70vh] overflow-y-auto px-4 -mx-4'>
           <Formik
             initialValues={initFormikValue}
             validationSchema={schema}
@@ -242,7 +250,7 @@ const ModalCreateEvent: NextPage<Props> = ({ show, onClickOverlay, property, eve
                       </div>
                     </div>
                     <div className="mt-auto">
-                      <div className={'mb-4'}>
+                      <div className="my-2">
                         <ButtonSubmit
                           label={'Save'}
                           disabled={isPendingCreate}

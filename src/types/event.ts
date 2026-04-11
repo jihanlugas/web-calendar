@@ -1,6 +1,7 @@
 import { Moment } from "moment";
 import { CompanyView } from "./company";
 import { PropertyView } from "./property";
+import { OrdereventView } from "./orderevent";
 
 
 export declare interface EventView {
@@ -27,6 +28,8 @@ export declare interface EventView {
 
   company?: CompanyView;
   unit?: PropertyView;
+  orderevent?: OrdereventView;
+
   // property?: UnitView;
 }
 

@@ -10,7 +10,7 @@ import { EVENT_STATUS, EVENT_STATUS_CONFIRM, EVENT_STATUS_HOLD } from "@/utils/c
 import DropdownField from "@/components/formik/dropdown-field";
 import TextAreaField from "@/components/formik/text-area-field";
 import ButtonSubmit from "@/components/formik/button-submit";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Api } from "@/lib/api";
 import { useEffect, useState } from "react";
 import { displayDateTime, displayDuration, displayMoney } from "@/utils/formater";
@@ -19,12 +19,13 @@ import DateField from "../formik/date-field";
 import TextFieldNumber from "../formik/text-field-number";
 import notif from "@/utils/notif";
 import { ImSpinner2 } from 'react-icons/im';
+import { AiOutlineLoading3Quarters } from "react-icons/ai";
 
 type Props = {
   show: boolean;
   onClickOverlay: () => void;
   property: PropertyView
-  event: EventView
+  eventId: string
 }
 
 const schema = Yup.object().shape({
@@ -48,9 +49,33 @@ const schema = Yup.object().shape({
 });
 
 
-const ModalEvent: NextPage<Props> = ({ show, onClickOverlay, property, event }) => {
+const ModalEvent: NextPage<Props> = ({ show, onClickOverlay, property, eventId }) => {
+
+  const [event, setEvent] = useState<EventView>(null)
+
+  const preloads = 'Company,Orderevent'
+  const { data, isLoading, refetch } = useQuery({
+    queryKey: ['event', eventId, preloads],
+    queryFn: ({ queryKey }) => {
+      const [, eventId] = queryKey;
+      return eventId ? Api.get('/event/' + eventId, { preloads }) : null
+    },
+  })
+
+  useEffect(() => {
+    if (data?.status) {
+      setEvent(data.payload);
+    }
+  }, [data])
+
 
   const [tab, setTab] = useState<'summary' | 'edit'>('summary')
+
+  useEffect(() => {
+    if (!show) {
+      setTab('summary')
+    }
+  }, [show])
 
   return (
     <Modal show={show} onClickOverlay={onClickOverlay} layout={'sm:max-w-2xl'}>
@@ -80,17 +105,27 @@ const ModalEvent: NextPage<Props> = ({ show, onClickOverlay, property, event }) 
             </button>
           </div>
           <div className="">
-            <button type="button" onClick={() => onClickOverlay()} className={'h-10 w-10 flex justify-center items-center duration-300 rounded shadow text-rose-500 hover:scale-110'}>
+            <button type="button" onClick={onClickOverlay} className={'h-10 w-10 flex justify-center items-center duration-300 rounded shadow text-rose-500 hover:scale-110'}>
               <IoClose size={'1.5rem'} className="text-rose-500" />
             </button>
           </div>
         </div>
-        {event && (
-          <>
-            {tab === 'summary' && <SummaryTab event={event} />}
-            {tab === 'edit' && <EditTab event={event} property={property} onClickOverlay={onClickOverlay} setTab={setTab} />}
-          </>
-        )}
+        <div className='h-[70vh] overflow-y-auto px-4 -mx-4'>
+          {isLoading ? (
+            <div className="h-full flex justify-center items-center m-auto">
+              <AiOutlineLoading3Quarters className={'animate-spin'} size={'5rem'} />
+            </div>
+          ) : event ? (
+            <>
+              {tab === 'summary' && <SummaryTab event={event} />}
+              {tab === 'edit' && <EditTab event={event} property={property} onClickOverlay={onClickOverlay} setTab={setTab} />}
+            </>
+          ) : (
+            <div className="flex justify-center items-center h-full m-auto">
+              <div className="text-gray-500 text-3xl font-bold">Event not found</div>
+            </div>
+          )}
+        </div>
       </div>
     </Modal>
   )
@@ -123,88 +158,85 @@ const SummaryTab: NextPage<SummaryTabProps> = ({ event }) => {
   }
 
   return (
-    <div className='h-[70vh] overflow-y-auto'>
-      <div className="flex flex-col h-full">
-        <div className="grid grid-cols-4 gap-4 mb-2">
-          <div className={''}>{'Event'}</div>
-          <div className={'col-span-3'}>{event.name}</div>
-        </div>
-        <div className="grid grid-cols-4 gap-4 mb-2">
-          <div className={''}>{'Description'}</div>
-          <div className={'col-span-3'}>{event.description || '-'}</div>
-        </div>
-        <div className="grid grid-cols-4 gap-4 mb-2">
-          <div className={''}>{'Status'}</div>
-          {event.status === EVENT_STATUS_HOLD && (
-            <div className={'col-span-3 flex items-center'}>
-              <div className="mr-2 h-5 w-8 border-2 border-gray-600 bg-gray-500"></div>
-              <div className="font-bold text-base">{event.status || '-'}</div>
-            </div>
-          )}
-          {event.status === EVENT_STATUS_CONFIRM && (
-            <div className={'col-span-3 flex items-center'}>
-              <div className="mr-2 h-5 w-8 border-2 border-blue-600 bg-blue-500"></div>
-              <div className="font-bold text-base">{event.status || '-'}</div>
-            </div>
-          )}
-        </div>
-        <div className="grid grid-cols-4 gap-4 mb-2">
-          <div className={''}>{'Start Date'}</div>
-          <div className={'col-span-3'}>{displayDateTime(event.startDt) || '-'}</div>
-        </div>
-        <div className="grid grid-cols-4 gap-4 mb-2">
-          <div className={''}>{'End Date'}</div>
-          <div className={'col-span-3'}>{displayDateTime(event.endDt) || '-'}</div>
-        </div>
-        <div className="mt-4">
-          <div>Order Summary</div>
-          <div className="grid grid-cols-4 gap-4 mb-2">
-            <div className={''}>{event.unitName}</div>
-            <div className={'col-span-3'}>{displayMoney(event.price)}</div>
-          </div>
-          <div className="grid grid-cols-4 gap-4 mb-2">
-            <div className={''}>{'Aqua 300ml'}</div>
-            <div className={'col-span-3'}>{displayMoney(50000)}</div>
-          </div>
-          <div className="grid grid-cols-4 gap-4 mb-2">
-            <div className={''}>{'Pocari Sweet 450ml'}</div>
-            <div className={'col-span-3'}>{displayMoney(12000)}</div>
-          </div>
-        </div>
+    <div className="flex flex-col h-full">
+      <div className="grid grid-cols-4 gap-4 mb-2">
+        <div className={''}>{'Event'}</div>
+        <div className={'col-span-3'}>{event.name}</div>
+      </div>
+      <div className="grid grid-cols-4 gap-4 mb-2">
+        <div className={''}>{'Description'}</div>
+        <div className={'col-span-3'}>{event.description || '-'}</div>
+      </div>
+      <div className="grid grid-cols-4 gap-4 mb-2">
+        <div className={''}>{'Status'}</div>
         {event.status === EVENT_STATUS_HOLD && (
-          <div className="mt-auto">
-            <div className="my-2">
-              <button
-                className={'duration-300 bg-primary-500 border-primary-500 hover:bg-primary-600 hover:border-primary-600 focus:border-primary-600 h-10 rounded-md text-gray-50 font-semibold px-4 w-full shadow-lg shadow-primary-600/20'}
-                type="button"
-                onClick={handleSetStatusConfirm}
-                disabled={isPendingUpdate}
-              >
-                <div className={'flex justify-center items-center'}>
-                  {isPendingUpdate ? <ImSpinner2 className={'animate-spin'} size={'1.5rem'} /> : 'Set status confirm'}
-                </div>
-              </button>
-            </div>
+          <div className={'col-span-3 flex items-center'}>
+            <div className="mr-2 h-5 w-8 border-2 border-gray-600 bg-gray-500"></div>
+            <div className="font-bold text-base">{event.status || '-'}</div>
           </div>
         )}
         {event.status === EVENT_STATUS_CONFIRM && (
-          <div className="mt-auto">
-            <div className="my-2">
-              <button
-                className={'duration-300 bg-primary-500 border-primary-500 hover:bg-primary-600 hover:border-primary-600 focus:border-primary-600 h-10 rounded-md text-gray-50 font-semibold px-4 w-full shadow-lg shadow-primary-600/20'}
-                type="button"
-                onClick={handleSetStatusConfirm}
-                disabled={isPendingUpdate}
-              >
-                <div className={'flex justify-center items-center'}>
-                  {isPendingUpdate ? <ImSpinner2 className={'animate-spin'} size={'1.5rem'} /> : 'Payment'}
-                </div>
-              </button>
-            </div>
+          <div className={'col-span-3 flex items-center'}>
+            <div className="mr-2 h-5 w-8 border-2 border-blue-600 bg-blue-500"></div>
+            <div className="font-bold text-base">{event.status || '-'}</div>
           </div>
         )}
-
       </div>
+      <div className="grid grid-cols-4 gap-4 mb-2">
+        <div className={''}>{'Start Date'}</div>
+        <div className={'col-span-3'}>{displayDateTime(event.startDt) || '-'}</div>
+      </div>
+      <div className="grid grid-cols-4 gap-4 mb-2">
+        <div className={''}>{'End Date'}</div>
+        <div className={'col-span-3'}>{displayDateTime(event.endDt) || '-'}</div>
+      </div>
+      <div className="mt-4">
+        <div>Order Summary</div>
+        <div className="grid grid-cols-4 gap-4 mb-2">
+          <div className={''}>{event.unitName}</div>
+          <div className={'col-span-3'}>{displayMoney(event.price)}</div>
+        </div>
+        <div className="grid grid-cols-4 gap-4 mb-2">
+          <div className={''}>{'Aqua 300ml'}</div>
+          <div className={'col-span-3'}>{displayMoney(50000)}</div>
+        </div>
+        <div className="grid grid-cols-4 gap-4 mb-2">
+          <div className={''}>{'Pocari Sweet 450ml'}</div>
+          <div className={'col-span-3'}>{displayMoney(12000)}</div>
+        </div>
+      </div>
+      {event.status === EVENT_STATUS_HOLD && (
+        <div className="mt-auto">
+          <div className="my-2">
+            <button
+              className={'duration-300 bg-primary-500 border-primary-500 hover:bg-primary-600 hover:border-primary-600 focus:border-primary-600 h-10 rounded-md text-gray-50 font-semibold px-4 w-full shadow-lg shadow-primary-600/20'}
+              type="button"
+              onClick={handleSetStatusConfirm}
+              disabled={isPendingUpdate}
+            >
+              <div className={'flex justify-center items-center'}>
+                {isPendingUpdate ? <ImSpinner2 className={'animate-spin'} size={'1.5rem'} /> : 'Set status confirm'}
+              </div>
+            </button>
+          </div>
+        </div>
+      )}
+      {event.status === EVENT_STATUS_CONFIRM && (
+        <div className="mt-auto">
+          <div className="my-2">
+            <button
+              className={'duration-300 bg-primary-500 border-primary-500 hover:bg-primary-600 hover:border-primary-600 focus:border-primary-600 h-10 rounded-md text-gray-50 font-semibold px-4 w-full shadow-lg shadow-primary-600/20'}
+              type="button"
+              onClick={handleSetStatusConfirm}
+              disabled={isPendingUpdate}
+            >
+              <div className={'flex justify-center items-center'}>
+                {isPendingUpdate ? <ImSpinner2 className={'animate-spin'} size={'1.5rem'} /> : 'Payment'}
+              </div>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -212,7 +244,7 @@ const SummaryTab: NextPage<SummaryTabProps> = ({ event }) => {
 interface EditTabProps {
   property: PropertyView
   event: EventView
-  onClickOverlay: () => void
+  onClickOverlay: () => void;
   setTab?: (tab: 'summary' | 'edit') => void
 }
 
@@ -247,8 +279,8 @@ const EditTab: NextPage<EditTabProps> = ({ property, event, onClickOverlay, setT
         if (status) {
           setSubmitting(false);
           notif.success(message);
-          onClickOverlay()
-          setTab('summary')
+          onClickOverlay();
+          setTab('summary');
         } else if (payload?.listError) {
           setErrors(payload.listError);
         } else {
@@ -263,105 +295,104 @@ const EditTab: NextPage<EditTabProps> = ({ property, event, onClickOverlay, setT
   }
 
   return (
-    <div className='h-[70vh] overflow-y-auto'>
-      <Formik
-        initialValues={initFormikValue}
-        validationSchema={schema}
-        enableReinitialize={true}
-        onSubmit={handleSubmit}
-      >
-        {({ values, setFieldValue }) => {
-          return (
-            <>
-              <PriceWatcher
-                propertyId={property.id}
-                mutateGetPrice={mutateGetPrice}
-              />
-              <Form className="flex flex-col h-full pt-4" noValidate={true}>
-                <div className='mb-4'>
-                  <div className="">
-                    <TextField
-                      label={'Event Name'}
-                      name={'name'}
-                      type={'text'}
-                      placeholder={'Event Name'}
-                      required
-                    />
-                  </div>
-                  <div className="">
-                    <TextAreaField
-                      label={'Description'}
-                      name={'description'}
-                      placeholder={'Description'}
-                    />
-                  </div>
-                  <div className="">
-                    <DropdownField
-                      label={"Unit"}
-                      name={"unitId"}
-                      items={property.units}
-                      keyValue={"id"}
-                      keyLabel={"name"}
-                      placeholder="Select Unit"
-                      placeholderValue={""}
-                      required
-                    />
-                  </div>
-                  <div className="">
-                    <DropdownField
-                      label={"Status"}
-                      name={"status"}
-                      items={EVENT_STATUS}
-                      keyValue={"value"}
-                      keyLabel={"label"}
-                      placeholder="Select Status"
-                      placeholderValue={""}
-                      required
-                    />
-                  </div>
-                  <div className=''>
-                    <DateField
-                      label='Start Date'
-                      name='startDt'
-                      required
-                    />
-                  </div>
-                  <div className=''>
-                    <DateField
-                      label='End Date'
-                      name='endDt'
-                      required
-                    />
-                  </div>
-                  <div className="">
-                    <TextFieldNumber
-                      label={'Price'}
-                      name={`price`}
-                      placeholder={'1...'}
-                      required
-                    />
-                  </div>
+    <Formik
+      initialValues={initFormikValue}
+      validationSchema={schema}
+      enableReinitialize={true}
+      onSubmit={handleSubmit}
+    >
+      {({ values, setFieldValue }) => {
+        return (
+          <>
+            <PriceWatcher
+              propertyId={property.id}
+              mutateGetPrice={mutateGetPrice}
+              skipInitialUpdate={true}
+            />
+            <Form className="flex flex-col h-full" noValidate={true}>
+              <div className='mb-4'>
+                <div className="">
+                  <TextField
+                    label={'Event Name'}
+                    name={'name'}
+                    type={'text'}
+                    placeholder={'Event Name'}
+                    required
+                  />
                 </div>
-                <div className="mt-auto">
-                  <div className="my-2">
-                    <ButtonSubmit
-                      label={'Save'}
-                      disabled={isPendingUpdate}
-                      loading={isPendingUpdate}
-                    />
-                  </div>
+                <div className="">
+                  <TextAreaField
+                    label={'Description'}
+                    name={'description'}
+                    placeholder={'Description'}
+                  />
                 </div>
-                {process.env.DEBUG === 'true' && (
-                  <div className="hidden md:flex mb-4 p-4 whitespace-pre-wrap">
-                    {JSON.stringify(values, null, 4)}
-                  </div>
-                )}
-              </Form>
-            </>
-          );
-        }}
-      </Formik>
-    </div>
+                <div className="">
+                  <DropdownField
+                    label={"Unit"}
+                    name={"unitId"}
+                    items={property.units}
+                    keyValue={"id"}
+                    keyLabel={"name"}
+                    placeholder="Select Unit"
+                    placeholderValue={""}
+                    required
+                  />
+                </div>
+                <div className="">
+                  <DropdownField
+                    label={"Status"}
+                    name={"status"}
+                    items={EVENT_STATUS}
+                    keyValue={"value"}
+                    keyLabel={"label"}
+                    placeholder="Select Status"
+                    placeholderValue={""}
+                    required
+                  />
+                </div>
+                <div className=''>
+                  <DateField
+                    label='Start Date'
+                    name='startDt'
+                    required
+                  />
+                </div>
+                <div className=''>
+                  <DateField
+                    label='End Date'
+                    name='endDt'
+                    required
+                  />
+                </div>
+                <div className="">
+                  <TextFieldNumber
+                    label={'Price'}
+                    name={`price`}
+                    placeholder={'1...'}
+                    required
+                  />
+                </div>
+              </div>
+              <div className="mt-auto">
+                <div className="my-2">
+                  <ButtonSubmit
+                    label={'Save'}
+                    disabled={isPendingUpdate}
+                    loading={isPendingUpdate}
+                  />
+                </div>
+              </div>
+              {process.env.DEBUG === 'true' && (
+                <div className="hidden md:flex mb-4 p-4 whitespace-pre-wrap">
+                  {JSON.stringify(values, null, 4)}
+                </div>
+              )}
+            </Form>
+          </>
+        );
+      }}
+    </Formik>
   )
 }
 

@@ -91,7 +91,7 @@ const SingleTimeline: NextPage<SingleTimelineProps> = ({ property }) => {
   const [showModalCreateEvent, setShowModalCreateEvent] = useState<boolean>(false);
   const [showModalEvent, setShowModalEvent] = useState<boolean>(false);
   const [eventNew, setEventNew] = useState<EventNew>(defaultEvent);
-  const [event, setEvent] = useState<EventView>(null);
+  const [eventId, setEventId] = useState<string>("");
   const [dorefetch, setDorefetch] = useState(0);
 
   const [pageRequest, setPageRequest] = useState({
@@ -143,28 +143,28 @@ const SingleTimeline: NextPage<SingleTimelineProps> = ({ property }) => {
     toggleModalCreateEvent()
   }
 
-  const handleClickNewEvent = () => {
-    const startDt = new Date()
-    const endDt = new Date()
+  // const handleClickNewEvent = () => {
+  //   const startDt = new Date()
+  //   const endDt = new Date()
 
-    setEventNew({
-      companyId: property.companyId,
-      name: "",
-      description: "",
-      propertyId: property.id,
-      unitId: "",
-      startDt: new Date(startDt.setHours(startDt.getHours() + 1, 0, 0, 0)),
-      endDt: new Date(endDt.setHours(endDt.getHours() + 2, 0, 0, 0)),
-      status: EVENT_STATUS_CONFIRM,
-      price: "",
-    })
+  //   setEventNew({
+  //     companyId: property.companyId,
+  //     name: "",
+  //     description: "",
+  //     propertyId: property.id,
+  //     unitId: "",
+  //     startDt: new Date(startDt.setHours(startDt.getHours() + 1, 0, 0, 0)),
+  //     endDt: new Date(endDt.setHours(endDt.getHours() + 2, 0, 0, 0)),
+  //     status: EVENT_STATUS_CONFIRM,
+  //     price: "",
+  //   })
 
-    toggleModalCreateEvent()
-  }
+  //   toggleModalCreateEvent()
+  // }
 
   const onItemClick = (itemId, e) => {
     // e.currentTarget.blur()
-    setEvent(items.find(item => item.id === itemId))
+    setEventId(itemId)
     toggleModalEvent()
 
     setSelectedItem(null)
@@ -205,8 +205,11 @@ const SingleTimeline: NextPage<SingleTimelineProps> = ({ property }) => {
     setShowModalCreateEvent(!showModalCreateEvent);
   }
 
-  const toggleModalEvent = () => {
+  const toggleModalEvent = (clear?: boolean) => {
     setShowModalEvent(!showModalEvent);
+    if (clear) {
+      setEventId("")
+    }
   }
 
   useEffect(() => {
@@ -256,8 +259,8 @@ const SingleTimeline: NextPage<SingleTimelineProps> = ({ property }) => {
       />
       <ModalEvent
         show={showModalEvent}
-        onClickOverlay={toggleModalEvent}
-        event={event}
+        onClickOverlay={() => toggleModalEvent(true)}
+        eventId={eventId}
         property={property}
       />
       <div className='bg-white mb-4 p-4 rounded shadow'>
