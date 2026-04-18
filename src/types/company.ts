@@ -1,5 +1,6 @@
 import { Paging } from "@/types/pagination";
 import { PropertyView } from "./property";
+import { CompanypaymentmethodView } from "./companypaymentmethod";
 
 export declare interface CompanyView {
   id: string;
@@ -21,6 +22,7 @@ export declare interface CompanyView {
   totalPlayer: number;
 
   properties?: PropertyView[];
+  companypaymentmethods?: CompanypaymentmethodView[];
 }
 
 export declare interface PageCompany extends Paging{

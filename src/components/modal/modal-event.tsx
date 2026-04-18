@@ -10,7 +10,7 @@ import { EVENT_STATUS, EVENT_STATUS_CONFIRM, EVENT_STATUS_HOLD } from "@/utils/c
 import DropdownField from "@/components/formik/dropdown-field";
 import TextAreaField from "@/components/formik/text-area-field";
 import ButtonSubmit from "@/components/formik/button-submit";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { QueryObserverResult, RefetchOptions, useMutation, useQuery } from "@tanstack/react-query";
 import { Api } from "@/lib/api";
 import { useEffect, useState } from "react";
 import { displayDateTime, displayDuration, displayMoney } from "@/utils/formater";
@@ -117,8 +117,8 @@ const ModalEvent: NextPage<Props> = ({ show, onClickOverlay, property, eventId }
             </div>
           ) : event ? (
             <>
-              {tab === 'summary' && <SummaryTab event={event} />}
-              {tab === 'edit' && <EditTab event={event} property={property} onClickOverlay={onClickOverlay} setTab={setTab} />}
+              {tab === 'summary' && <SummaryTab event={event} refetch={refetch} />}
+              {tab === 'edit' && <EditTab event={event} property={property} onClickOverlay={onClickOverlay} setTab={setTab} refetch={refetch} />}
             </>
           ) : (
             <div className="flex justify-center items-center h-full m-auto">
@@ -133,9 +133,10 @@ const ModalEvent: NextPage<Props> = ({ show, onClickOverlay, property, eventId }
 
 interface SummaryTabProps {
   event: EventView
+  refetch: (options?: RefetchOptions) => Promise<QueryObserverResult<any, Error>>
 }
 
-const SummaryTab: NextPage<SummaryTabProps> = ({ event }) => {
+const SummaryTab: NextPage<SummaryTabProps> = ({ event, refetch }) => {
   const { mutate: mutateUpdate, isPending: isPendingUpdate } = useMutation({
     mutationKey: ['event', 'update', event.id],
     mutationFn: (val: EventView) => Api.put(`/event/${event.id}`, val),
@@ -147,6 +148,7 @@ const SummaryTab: NextPage<SummaryTabProps> = ({ event }) => {
       onSuccess: ({ status, message, payload }) => {
         if (status) {
           notif.success(message);
+          refetch();
         } else {
           notif.error(message);
         }
@@ -246,9 +248,10 @@ interface EditTabProps {
   event: EventView
   onClickOverlay: () => void;
   setTab?: (tab: 'summary' | 'edit') => void
+  refetch: (options?: RefetchOptions) => Promise<QueryObserverResult<any, Error>>
 }
 
-const EditTab: NextPage<EditTabProps> = ({ property, event, onClickOverlay, setTab }) => {
+const EditTab: NextPage<EditTabProps> = ({ property, event, onClickOverlay, setTab, refetch }) => {
 
   const [initFormikValue, setInitFormikValue] = useState(event)
 
@@ -281,6 +284,7 @@ const EditTab: NextPage<EditTabProps> = ({ property, event, onClickOverlay, setT
           notif.success(message);
           onClickOverlay();
           setTab('summary');
+          refetch();
         } else if (payload?.listError) {
           setErrors(payload.listError);
         } else {
