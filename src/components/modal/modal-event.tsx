@@ -20,6 +20,11 @@ import TextFieldNumber from "../formik/text-field-number";
 import notif from "@/utils/notif";
 import { ImSpinner2 } from 'react-icons/im';
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
+import { CreateOrderpayment } from "@/types/orderpayment";
+import { CompanypaymentmethodView, PageCompanypaymentmethod } from "@/types/companypaymentmethod";
+import { PageCompany } from "@/types/company";
+import { LuLayoutList, LuPencil, LuWallet } from "react-icons/lu";
+import { MdOutlineCalendarToday, MdOutlineShoppingCart, MdOutlineTimelapse } from "react-icons/md";
 
 type Props = {
   show: boolean;
@@ -48,17 +53,37 @@ const schema = Yup.object().shape({
   price: Yup.number().required('Required'),
 });
 
+const schemaOrderpayment = Yup.object().shape({
+  companypaymentmethodId: Yup.string().required('Required'),
+  name: Yup.string().required('Required'),
+  total: Yup.number().required('Required'),
+});
+
 
 const ModalEvent: NextPage<Props> = ({ show, onClickOverlay, property, eventId }) => {
 
   const [event, setEvent] = useState<EventView>(null)
+  const [companypaymentmethods, setCompanypaymentmethods] = useState<CompanypaymentmethodView[]>([])
 
-  const preloads = 'Company,Orderevent'
+  const preloads = 'Company,Order,Order.Orderevents,Order.Orderproducts,Order.Orderpayments'
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['event', eventId, preloads],
     queryFn: ({ queryKey }) => {
       const [, eventId] = queryKey;
       return eventId ? Api.get('/event/' + eventId, { preloads }) : null
+    },
+  })
+
+  const [pageRequest, setPageRequest] = useState<PageCompanypaymentmethod>({
+    limit: 100,
+    page: 1,
+    preloads: "",
+  });
+
+  const { data: dataCompanypaymentmethod, isLoading: isLoadingCompanypaymentmethod, refetch: refetchCompanypaymentmethod } = useQuery({
+    queryKey: ['companypaymentmethod', pageRequest],
+    queryFn: ({ queryKey }) => {
+      return Api.get('/companypaymentmethod', queryKey[1] as object)
     },
   })
 
@@ -68,47 +93,97 @@ const ModalEvent: NextPage<Props> = ({ show, onClickOverlay, property, eventId }
     }
   }, [data])
 
+  useEffect(() => {
+    setCompanypaymentmethods(dataCompanypaymentmethod?.payload?.list || [])
+  }, [dataCompanypaymentmethod])
 
-  const [tab, setTab] = useState<'summary' | 'edit'>('summary')
+
+  const [tab, setTab] = useState<'summary' | 'edit' | 'payment'>('summary')
 
   useEffect(() => {
     if (!show) {
       setTab('summary')
+    } else {
+      refetchCompanypaymentmethod()
     }
   }, [show])
 
   return (
-    <Modal show={show} onClickOverlay={onClickOverlay} layout={'sm:max-w-2xl'}>
+    <Modal show={show} onClickOverlay={onClickOverlay} layout={'sm:max-w-4xl'}>
       <div className="p-4">
-        <div className={'text-lg mb-4 flex justify-between items-center border-b'}>
-          <div className="flex">
-            <button
-              onClick={() => setTab('summary')}
-              className={
-                tab === 'summary'
-                  ? 'p-2 pb-4 mr-4 border-b-2 border-primary-500 text-primary-500'
-                  : 'p-2 pb-4 mr-4 border-b-2 border-transparent hover:border-primary-400'
-              }
-            >
-              Summary
-            </button>
-
-            <button
-              onClick={() => setTab('edit')}
-              className={
-                tab === 'edit'
-                  ? 'p-2 pb-4 mr-4 border-b-2 border-primary-500 text-primary-500'
-                  : 'p-2 pb-4 mr-4 border-b-2 border-transparent hover:border-primary-400'
-              }
-            >
-              Edit Event
-            </button>
+        <div className="mb-2 flex justify-between">
+          <div>
+            <div className="text-xl font-bold">{event?.name}</div>
+            <div className="flex items-center text-sm text-gray-700 gap-2 mb-1">
+              <div>{event?.propertyName}</div>
+              <div className="text-gray-500">•</div>
+              <div>{event?.unitName}</div>
+            </div>
+            <div className="flex">
+              {event?.status === EVENT_STATUS_CONFIRM && (
+                <div className={'py-1 px-2 rounded-lg text-xs mr-4 font-bold bg-blue-200 text-blue-500'}>{EVENT_STATUS_CONFIRM}</div>
+              )}
+              {event?.status === EVENT_STATUS_HOLD && (
+                <div className={'py-1 px-2 rounded-lg text-xs mr-4 font-bold bg-gray-200 text-gray-500'}>{EVENT_STATUS_HOLD}</div>
+              )}
+              {event?.order && (
+                <>
+                  {event?.order?.outstanding > 0 ? (
+                    <div className={'py-1 px-2 rounded-lg text-xs mr-4 font-bold bg-rose-200 text-rose-500'}>{"UNPAID"}</div>
+                  ) : (
+                    <div className={'py-1 px-2 rounded-lg text-xs mr-4 font-bold bg-green-200 text-green-500'}>{"PAID"}</div>
+                  )}
+                </>
+              )}
+            </div>
           </div>
           <div className="">
             <button type="button" onClick={onClickOverlay} className={'h-10 w-10 flex justify-center items-center duration-300 rounded shadow text-rose-500 hover:scale-110'}>
               <IoClose size={'1.5rem'} className="text-rose-500" />
             </button>
           </div>
+        </div>
+        <div className={' mb-4 flex justify-start items-center border-b text-base font-bold'}>
+          <button
+            onClick={() => setTab('summary')}
+            className={
+              tab === 'summary'
+                ? 'p-2 pb-4 px-8 border-b-2 border-primary-500 text-primary-500'
+                : 'p-2 pb-4 px-8 border-b-2 border-transparent hover:border-primary-400 hover:text-primary-400'
+            }
+          >
+            <div className="flex items-center">
+              <LuLayoutList className="mr-2" size={"1.0em"} />
+              <span>Summary</span>
+            </div>
+          </button>
+          <button
+            onClick={() => setTab('edit')}
+            className={
+              tab === 'edit'
+                ? 'p-2 pb-4 px-8 border-b-2 border-primary-500 text-primary-500'
+                : 'p-2 pb-4 px-8 border-b-2 border-transparent hover:border-primary-400 hover:text-primary-400'
+            }
+          >
+            <div className="flex items-center">
+              <LuPencil className="mr-2" size={"1.0em"} />
+              <span>Edit Event</span>
+            </div>
+
+          </button>
+          <button
+            onClick={() => setTab('payment')}
+            className={
+              tab === 'payment'
+                ? 'p-2 pb-4 px-8 border-b-2 border-primary-500 text-primary-500'
+                : 'p-2 pb-4 px-8 border-b-2 border-transparent hover:border-primary-400 hover:text-primary-400'
+            }
+          >
+            <div className="flex items-center">
+              <LuWallet className="mr-2" size={"1.0em"} />
+              <span>Payment</span>
+            </div>
+          </button>
         </div>
         <div className='h-[70vh] overflow-y-auto px-4 -mx-4'>
           {isLoading ? (
@@ -117,8 +192,9 @@ const ModalEvent: NextPage<Props> = ({ show, onClickOverlay, property, eventId }
             </div>
           ) : event ? (
             <>
-              {tab === 'summary' && <SummaryTab event={event} refetch={refetch} />}
+              {tab === 'summary' && <SummaryTab event={event} setTab={setTab} refetch={refetch} />}
               {tab === 'edit' && <EditTab event={event} property={property} onClickOverlay={onClickOverlay} setTab={setTab} refetch={refetch} />}
+              {tab === 'payment' && <PaymentTab event={event} property={property} onClickOverlay={onClickOverlay} setTab={setTab} refetch={refetch} companypaymentmethods={companypaymentmethods} />}
             </>
           ) : (
             <div className="flex justify-center items-center h-full m-auto">
@@ -133,18 +209,18 @@ const ModalEvent: NextPage<Props> = ({ show, onClickOverlay, property, eventId }
 
 interface SummaryTabProps {
   event: EventView
+  setTab?: (tab: 'summary' | 'edit' | 'payment') => void
   refetch: (options?: RefetchOptions) => Promise<QueryObserverResult<any, Error>>
 }
 
-const SummaryTab: NextPage<SummaryTabProps> = ({ event, refetch }) => {
+const SummaryTab: NextPage<SummaryTabProps> = ({ event, refetch, setTab }) => {
   const { mutate: mutateUpdate, isPending: isPendingUpdate } = useMutation({
-    mutationKey: ['event', 'update', event.id],
-    mutationFn: (val: EventView) => Api.put(`/event/${event.id}`, val),
+    mutationKey: ['event', event.id, 'confirm'],
+    mutationFn: () => Api.post(`/event/${event.id}/confirm`),
   });
 
   const handleSetStatusConfirm = () => {
-    event.status = EVENT_STATUS_CONFIRM
-    mutateUpdate(event, {
+    mutateUpdate(null, {
       onSuccess: ({ status, message, payload }) => {
         if (status) {
           notif.success(message);
@@ -159,53 +235,181 @@ const SummaryTab: NextPage<SummaryTabProps> = ({ event, refetch }) => {
     });
   }
 
+  const handlePayment = () => {
+    setTab('payment')
+  }
+
   return (
     <div className="flex flex-col h-full">
-      <div className="grid grid-cols-4 gap-4 mb-2">
-        <div className={''}>{'Event'}</div>
-        <div className={'col-span-3'}>{event.name}</div>
-      </div>
-      <div className="grid grid-cols-4 gap-4 mb-2">
-        <div className={''}>{'Description'}</div>
-        <div className={'col-span-3'}>{event.description || '-'}</div>
-      </div>
-      <div className="grid grid-cols-4 gap-4 mb-2">
-        <div className={''}>{'Status'}</div>
-        {event.status === EVENT_STATUS_HOLD && (
-          <div className={'col-span-3 flex items-center'}>
-            <div className="mr-2 h-5 w-8 border-2 border-gray-600 bg-gray-500"></div>
-            <div className="font-bold text-base">{event.status || '-'}</div>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="border rounded p-2 flex">
+          <div className="flex-none w-10 h-10 flex justify-center items-center mr-4 bg-blue-200 text-blue-500 rounded">
+            <MdOutlineCalendarToday className="" size={"1.5em"} />
           </div>
-        )}
-        {event.status === EVENT_STATUS_CONFIRM && (
-          <div className={'col-span-3 flex items-center'}>
-            <div className="mr-2 h-5 w-8 border-2 border-blue-600 bg-blue-500"></div>
-            <div className="font-bold text-base">{event.status || '-'}</div>
+          <div className="flex-1 flex flex-col">
+            <div className="h-10 min-h-10 flex-none flex items-center mb-2">
+              <div className="font-bold">Event Information</div>
+            </div>
+            <div className="h-full flex flex-col">
+              <div className="mb-2">
+                <div className="text-gray-500">Event Name</div>
+                <div className="text-gray-700">{event.name}</div>
+              </div>
+              <div className="mb-2">
+                <div className="text-gray-500">Description</div>
+                <div className="text-gray-700">{event.description || '-'}</div>
+              </div>
+              <div className="mb-2">
+                <div className="text-gray-500">Status</div>
+                <div className="flex items-center">
+                  {event.status === EVENT_STATUS_CONFIRM && (
+                    <span className="h-3 w-3 mr-2 rounded-full bg-blue-500"></span>
+                  )}
+                  {event.status === EVENT_STATUS_HOLD && (
+                    <span className="h-3 w-3 mr-2 rounded-full bg-gray-500"></span>
+                  )}
+                  <span className="lowercase first-letter:uppercase">{event.status}</span>
+                </div>
+              </div>
+            </div>
           </div>
-        )}
-      </div>
-      <div className="grid grid-cols-4 gap-4 mb-2">
-        <div className={''}>{'Start Date'}</div>
-        <div className={'col-span-3'}>{displayDateTime(event.startDt) || '-'}</div>
-      </div>
-      <div className="grid grid-cols-4 gap-4 mb-2">
-        <div className={''}>{'End Date'}</div>
-        <div className={'col-span-3'}>{displayDateTime(event.endDt) || '-'}</div>
-      </div>
-      <div className="mt-4">
-        <div>Order Summary</div>
-        <div className="grid grid-cols-4 gap-4 mb-2">
-          <div className={''}>{event.unitName}</div>
-          <div className={'col-span-3'}>{displayMoney(event.price)}</div>
         </div>
-        <div className="grid grid-cols-4 gap-4 mb-2">
-          <div className={''}>{'Aqua 300ml'}</div>
-          <div className={'col-span-3'}>{displayMoney(50000)}</div>
+        <div className="border rounded p-2 flex">
+          <div className="flex-none w-10 h-10 flex justify-center items-center mr-4 bg-blue-200 text-blue-500 rounded">
+            <MdOutlineTimelapse className="" size={"1.5em"} />
+          </div>
+          <div className="flex-1 flex flex-col">
+            <div className="h-10 min-h-10 flex-none flex items-center mb-2">
+              <div className="font-bold">Schedule</div>
+            </div>
+            <div className="h-full flex flex-col">
+              <div className="mb-2">
+                <div className="text-gray-500">Start Date</div>
+                <div className="text-gray-700">{displayDateTime(event.startDt)}</div>
+              </div>
+              <div className="mb-2">
+                <div className="text-gray-500">End Date</div>
+                <div className="text-gray-700">{displayDateTime(event.endDt)}</div>
+              </div>
+              <div className="mt-auto flex justify-between px-1 py-2 -mx-1 bg-blue-200 rounded text-blue-500 font-bold">
+                <div className="">Duration</div>
+                <div className="">{displayDuration(event.startDt, event.endDt)}</div>
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="grid grid-cols-4 gap-4 mb-2">
-          <div className={''}>{'Pocari Sweet 450ml'}</div>
-          <div className={'col-span-3'}>{displayMoney(12000)}</div>
+        <div className="border rounded p-2 flex">
+          <div className="flex-none w-10 h-10 flex justify-center items-center mr-4 bg-green-200 text-green-500 rounded">
+            <MdOutlineShoppingCart className="" size={"1.5em"} />
+          </div>
+          <div className="flex-1 flex flex-col">
+            <div className="h-10 min-h-10 flex-none flex items-center mb-2">
+              <div className="font-bold">Order Summary</div>
+            </div>
+            <div className="h-full flex flex-col">
+              {event.order.orderevents?.map((orderevent) => {
+                return (
+                  <div key={orderevent.id} className="mb-2 flex justify-between">
+                    <div className="text-gray-500">{orderevent.unitName}</div>
+                    <div className="text-gray-700">{displayMoney(orderevent.total)}</div>
+                  </div>
+                )
+              })}
+              {event.order.orderproducts?.map((orderproduct) => {
+                return (
+                  <div key={orderproduct.id} className="mb-2 flex justify-between">
+                    <div className="text-gray-500">{orderproduct.productName}</div>
+                    <div className="text-gray-700">{displayMoney(orderproduct.total)}</div>
+                  </div>
+                )
+              })}
+              <hr className="mb-2" />
+              <div className="mb-2 flex justify-between">
+                <div className="text-gray-500">Subtotal</div>
+                <div className="text-gray-700">{displayMoney(event.order.subtotal)}</div>
+              </div>
+              {/* {event.order.orderdiscounts?.map((orderdiscount) => {
+              return (
+                <div key={orderdiscount.id} className="mb-2 flex justify-between">
+                  <div className="text-gray-500">{orderdiscount.discountName}</div>
+                  <div className="text-gray-700">{displayMoney(orderdiscount.total)}</div>
+                </div>
+              )
+            })}
+            {event.order.discount > 0 && (
+              <div className="mb-2 flex justify-between">
+                <div className="text-gray-500">Discount</div>
+                <div className="text-gray-700">{displayMoney(event.order.discount)}</div>
+              </div>
+            )}
+            {event.order.ordertaxes?.map((ordertax) => {
+              return (
+                <div key={ordertax.id} className="mb-2 flex justify-between">
+                  <div className="text-gray-500">{ordertax.taxName}</div>
+                  <div className="text-gray-700">{displayMoney(ordertax.total)}</div>
+                </div>
+              )
+            })}
+            {event.order.tax > 0 && (
+              <div className="mb-2 flex justify-between">
+                <div className="text-gray-500">Tax</div>
+                <div className="text-gray-700">{displayMoney(event.order.tax)}</div>
+              </div>
+            )} */}
+              <div className="mt-auto flex justify-between px-1 py-2 -mx-1 bg-green-200 rounded text-green-500 font-bold">
+                <div className="">Total Order</div>
+                <div className="">{displayMoney(event.order.total)}</div>
+              </div>
+            </div>
+          </div>
         </div>
+        <div className="border rounded p-2 flex">
+          <div className="flex-none w-10 h-10 flex justify-center items-center mr-4 bg-rose-200 text-rose-500 rounded">
+            <LuWallet className="" size={"1.5em"} />
+          </div>
+          <div className="flex-1 flex flex-col">
+            <div className="h-10 min-h-10 flex-none flex items-center mb-2">
+              <div className="font-bold">Payment</div>
+            </div>
+            <div className="h-full flex flex-col">
+              <div className="mb-2 flex justify-between">
+                <div className="text-gray-500">Total Order</div>
+                <div className="text-gray-700">{displayMoney(event.order.total)}</div>
+              </div>
+              <hr className="mb-2" />
+              {event.order.orderpayments?.map((orderpayment) => {
+                return (
+                  <div key={orderpayment.id} className="mb-2 flex justify-between">
+                    <div className="text-gray-500">{orderpayment.name}</div>
+                    <div className="text-gray-700">{displayMoney(orderpayment.total)}</div>
+                  </div>
+                )
+              })}
+              <div className="mb-2 flex justify-between text-green-500">
+                <div className="">Total Payment</div>
+                <div className="">{displayMoney(event.order.payment)}</div>
+              </div>
+              {event.order.outstanding > 0 && (
+                <div className="mb-2 flex justify-between text-rose-500">
+                  <div className="">Outstanding</div>
+                  <div className="">{displayMoney(event.order.payment)}</div>
+                </div>
+              )}
+              {event.order.outstanding > 0 ? (
+                <div className="mt-auto flex justify-between px-1 py-2 -mx-1  rounded text-rose-500 font-bold">
+                  <div className=""></div>
+                  <div className="bg-rose-200 py-1 px-2 rounded-lg ">{"UNPAID"}</div>
+                </div>
+              ) : (
+                <div className="mt-auto flex justify-between px-1 py-2 -mx-1  rounded text-green-500 font-bold">
+                  <div className=""></div>
+                  <div className="bg-green-200 py-1 px-2 rounded-lg ">{"PAID"}</div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
       </div>
       {event.status === EVENT_STATUS_HOLD && (
         <div className="mt-auto">
@@ -217,19 +421,19 @@ const SummaryTab: NextPage<SummaryTabProps> = ({ event, refetch }) => {
               disabled={isPendingUpdate}
             >
               <div className={'flex justify-center items-center'}>
-                {isPendingUpdate ? <ImSpinner2 className={'animate-spin'} size={'1.5rem'} /> : 'Set status confirm'}
+                {isPendingUpdate ? <ImSpinner2 className={'animate-spin'} size={'1.5rem'} /> : 'Confirm event'}
               </div>
             </button>
           </div>
         </div>
       )}
-      {event.status === EVENT_STATUS_CONFIRM && (
+      {event.status === EVENT_STATUS_CONFIRM && event.order.outstanding > 0 && (
         <div className="mt-auto">
           <div className="my-2">
             <button
               className={'duration-300 bg-primary-500 border-primary-500 hover:bg-primary-600 hover:border-primary-600 focus:border-primary-600 h-10 rounded-md text-gray-50 font-semibold px-4 w-full shadow-lg shadow-primary-600/20'}
               type="button"
-              onClick={handleSetStatusConfirm}
+              onClick={handlePayment}
               disabled={isPendingUpdate}
             >
               <div className={'flex justify-center items-center'}>
@@ -247,7 +451,7 @@ interface EditTabProps {
   property: PropertyView
   event: EventView
   onClickOverlay: () => void;
-  setTab?: (tab: 'summary' | 'edit') => void
+  setTab?: (tab: 'summary' | 'edit' | 'payment') => void
   refetch: (options?: RefetchOptions) => Promise<QueryObserverResult<any, Error>>
 }
 
@@ -264,16 +468,6 @@ const EditTab: NextPage<EditTabProps> = ({ property, event, onClickOverlay, setT
     mutationKey: ['property', 'get-price'],
     mutationFn: (payload: { propertyId: string; startDt: string; endDt: string }) =>
       Api.post('/property/get-price', payload)
-    // onSuccess: (res) => {
-    //   if (res.status) {
-    //     formRef.current.setFieldValue('price', (res.payload || null));
-    //   } else {
-    //     notif.error(res.message || 'Failed to get price');
-    //   }
-    // },
-    // onError: (error: any) => {
-    //   notif.error(error.message || 'An error occurred while fetching price');
-    // }
   });
 
   const handleSubmit = (values: any, { setSubmitting, setErrors }: any) => {
@@ -352,6 +546,7 @@ const EditTab: NextPage<EditTabProps> = ({ property, event, onClickOverlay, setT
                     keyLabel={"label"}
                     placeholder="Select Status"
                     placeholderValue={""}
+                    disabled={values.status === EVENT_STATUS_CONFIRM}
                     required
                   />
                 </div>
@@ -373,7 +568,7 @@ const EditTab: NextPage<EditTabProps> = ({ property, event, onClickOverlay, setT
                   <TextFieldNumber
                     label={'Price'}
                     name={`price`}
-                    placeholder={'1...'}
+                    placeholder={'1000...'}
                     required
                   />
                 </div>
@@ -397,6 +592,237 @@ const EditTab: NextPage<EditTabProps> = ({ property, event, onClickOverlay, setT
         );
       }}
     </Formik>
+  )
+}
+
+interface PaymentTabProps {
+  property: PropertyView
+  event: EventView
+  onClickOverlay: () => void;
+  setTab?: (tab: 'summary' | 'edit' | 'payment') => void
+  refetch: (options?: RefetchOptions) => Promise<QueryObserverResult<any, Error>>
+  companypaymentmethods: CompanypaymentmethodView[]
+}
+
+const PaymentTab: NextPage<PaymentTabProps> = ({ property, event, onClickOverlay, setTab, refetch, companypaymentmethods }) => {
+
+  const defaultFormikValue: CreateOrderpayment = {
+    companyId: property.companyId,
+    orderId: event.orderId,
+    companypaymentmethodId: '',
+    name: '',
+    total: ''
+  }
+
+  const [initFormikValue, setInitFormikValue] = useState<CreateOrderpayment>(defaultFormikValue)
+
+  const { mutate: mutateCreatePayment, isPending: isPendingUpdate } = useMutation({
+    mutationKey: ['orderpayment', 'create'],
+    mutationFn: (val: FormikValues) => Api.post(`/orderpayment`, val),
+  });
+
+  // const { mutate: mutateGetPrice } = useMutation({
+  //   mutationKey: ['property', 'get-price'],
+  //   mutationFn: (payload: { propertyId: string; startDt: string; endDt: string }) =>
+  //     Api.post('/property/get-price', payload)
+  // });
+
+
+  const handleSubmit = (values: any, { setSubmitting, setErrors, resetForm }: any) => {
+    console.log('values', values)
+    mutateCreatePayment(values, {
+      onSuccess: ({ status, message, payload }) => {
+        if (status) {
+          setSubmitting(false);
+          notif.success(message);
+          // onClickOverlay();
+          resetForm();
+          refetch();
+        } else if (payload?.listError) {
+          setErrors(payload.listError);
+        } else {
+          notif.error(message);
+        }
+      },
+      onError: (error: any) => {
+        setSubmitting(false);
+        notif.error(error.message || 'An error occurred while create payment');
+      }
+    });
+  }
+
+  if (event.order == null) {
+    return (
+      <div className="flex justify-center items-center h-full m-auto">
+        <div className="text-gray-500 text-3xl font-bold">No order found</div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col h-full">
+      <DisplayOrderPayment event={event} />
+
+      {event.order.outstanding > 0 && (
+        <>
+          <hr className="mb-2" />
+          <Formik
+            initialValues={initFormikValue}
+            validationSchema={schemaOrderpayment}
+            enableReinitialize={true}
+            onSubmit={handleSubmit}
+          >
+            {({ values }) => {
+              return (
+                <Form className="flex flex-col h-full" noValidate={true}>
+                  <div className="grid grid-cols-3 gap-4 mb-2">
+                    <div className="text-xl">Create Payment</div>
+                    <div className="col-span-2">
+                      <div className="">
+                        <DropdownField
+                          label={"Payment Method"}
+                          name={"companypaymentmethodId"}
+                          items={companypaymentmethods}
+                          keyValue={"id"}
+                          keyLabel={"paymentmethodName"}
+                          placeholder="Select Payment Method"
+                          placeholderValue={""}
+                          required
+                        />
+                      </div>
+                      <div className="">
+                        <TextField
+                          label={'Payment Name'}
+                          name={'name'}
+                          type={'text'}
+                          placeholder={'DP, Pelunasan ...'}
+                          required
+                        />
+                      </div>
+                      <div className="">
+                        <TextFieldNumber
+                          label={'Amount'}
+                          name={`total`}
+                          placeholder={'1...'}
+                          required
+                        />
+                      </div>
+                      <div className="my-2">
+                        <ButtonSubmit
+                          label={'Save'}
+                          disabled={isPendingUpdate}
+                          loading={isPendingUpdate}
+                        />
+                      </div>
+
+                      {process.env.DEBUG === 'true' && (
+                        <div>
+                          <div className="hidden md:flex mb-4 p-4 whitespace-pre-wrap">
+                            {JSON.stringify(values, null, 4)}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </Form>
+              );
+            }}
+          </Formik>
+        </>
+      )}
+
+    </div>
+  )
+}
+
+interface DisplayOrderPaymentProps {
+  event: EventView
+}
+
+const DisplayOrderPayment: NextPage<DisplayOrderPaymentProps> = ({ event }) => {
+  return (
+    <>
+      <div className="grid grid-cols-3 gap-4 mb-2">
+        <div className="text-xl">Order</div>
+        <div className="col-span-2">
+          {event.order.orderevents?.map((orderevent) => {
+            return (
+              <div key={orderevent.id} className="flex justify-between mb-2">
+                <div className={''}>{orderevent.unitName}</div>
+                <div className={''}>{displayMoney(orderevent.total)}</div>
+              </div>
+            )
+          })}
+          {event.order.orderproducts?.map((orderproduct) => {
+            return (
+              <div key={orderproduct.id} className="flex justify-between mb-2">
+                <div className={''}>{orderproduct.productName}</div>
+                <div className={''}>{displayMoney(orderproduct.price)}</div>
+                <div className={''}>{displayMoney(orderproduct.total)}</div>
+              </div>
+            )
+          })}
+          <hr className="mb-2" />
+          <div className="flex justify-between mb-2">
+            <div className={''}>{'Subtotal'}</div>
+            <div className={''}>{displayMoney(event.order.subtotal)}</div>
+          </div>
+          {event.order.tax > 0 && (
+            <div className="flex justify-between mb-2">
+              <div className={''}>{'Tax'}</div>
+              <div className={''}>{displayMoney(event.order.tax)}</div>
+            </div>
+          )}
+          {event.order.discount > 0 && (
+            <div className="flex justify-between mb-2">
+              <div className={''}>{'Discount'}</div>
+              <div className={''}>{displayMoney(event.order.discount)}</div>
+            </div>
+          )}
+          {event.order.rounding > 0 && (
+            <div className="flex justify-between mb-2">
+              <div className={''}>{'Rounding'}</div>
+              <div className={''}>{displayMoney(event.order.rounding)}</div>
+            </div>
+          )}
+          <hr className="mb-2" />
+          <div className="flex justify-between mb-2">
+            <div className={''}>{'Total Order'}</div>
+            <div className={''}>{displayMoney(event.order.total)}</div>
+          </div>
+        </div>
+
+      </div>
+      <hr className="mb-2" />
+      <div className="grid grid-cols-3 gap-4 mb-2">
+        <div className="text-xl">Payment</div>
+        <div className="col-span-2">
+          {event.order.orderpayments && event.order.orderpayments.length > 0 && (
+            <>
+              {event.order.orderpayments?.map((orderpayment) => {
+                return (
+                  <div key={orderpayment.id} className="flex justify-between mb-2">
+                    <div className={''}>{orderpayment.name}</div>
+                    <div className={'text-green-500'}>{displayMoney(orderpayment.total)}</div>
+                  </div>
+                )
+              })}
+              <hr className="mb-2" />
+            </>
+          )}
+          <div className="flex justify-between mb-2">
+            <div className={''}>{'Total Payment'}</div>
+            <div className={'text-green-500'}>{displayMoney(event.order.payment)}</div>
+          </div>
+          {event.order.outstanding > 0 && (
+            <div className="flex justify-between mb-2">
+              <div className={''}>{'Outstanding'}</div>
+              <div className={'text-red-500'}>{displayMoney(event.order.outstanding)}</div>
+            </div>
+          )}
+        </div>
+      </div>
+    </>
   )
 }
 

@@ -1,4 +1,5 @@
 import { CompanyView } from "./company";
+import { Paging } from "./pagination";
 import { PaymentmethodView } from "./paymentmethod";
 
 export declare interface CompanypaymentmethodView {
@@ -14,7 +15,19 @@ export declare interface CompanypaymentmethodView {
     paymentmethodName: string;
     createName: string;
     updateName: string;
-    
+
     company?: CompanyView;
     paymentmethod?: PaymentmethodView;
+}
+
+export declare interface PageCompanypaymentmethod extends Paging {
+    companyId?: string;
+    paymentmethodId?: string;
+    companyName?: string;
+    paymentmethodName?: string;
+    createName?: string;
+    updateName?: string;
+    preloads?: string;
+    startDt?: string | DateConstructor;
+    endDt?: string | DateConstructor;
 }

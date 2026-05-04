@@ -10,12 +10,15 @@ import { OrdertaxView } from "./ordertax";
 export declare interface OrderView {
     id: string;
     companyId: string;
+    total_orderevent: number;
+    total_orderproduct: number;
     tax: number;
     discount: number;
     rounding: number;
     subtotal: number;
     total: number;
     payment: number;
+    outstanding: number;
     createBy: string;
     createDt: string;
     updateBy: string;

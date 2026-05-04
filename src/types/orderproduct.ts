@@ -10,6 +10,7 @@ export declare interface OrderproductView {
     productId: string;
     quantity: number;
     price: number;
+    total: number;
     createBy: string;
     createDt: string;
     updateBy: string;

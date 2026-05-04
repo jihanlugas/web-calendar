@@ -95,8 +95,8 @@ const ModalCreatePropertyPropertyprice: NextPage<Props> = ({ show, onClickOverla
           >
             {({ values, errors, setFieldValue, touched }) => {
               return (
-                <Form className="flex flex-col h-full pt-4" noValidate={true}>
-                  <div className="mb-4">
+                <Form className="flex flex-col h-full" noValidate={true}>
+                  <div className="">
                     <TextFieldNumber
                       label={'Price'}
                       name={`price`}
@@ -106,7 +106,7 @@ const ModalCreatePropertyPropertyprice: NextPage<Props> = ({ show, onClickOverla
                   </div>
                   {values?.priority !== 1 && (
                     <>
-                      <div className="mb-4">
+                      <div className="">
                         <DateField
                           label='Start Time'
                           name='startTime'
@@ -116,7 +116,7 @@ const ModalCreatePropertyPropertyprice: NextPage<Props> = ({ show, onClickOverla
                           placeholderText={"Start Time"}
                         />
                       </div>
-                      <div className="mb-4">
+                      <div className="">
                         <DateField
                           label='End Time'
                           name='endTime'
@@ -128,7 +128,7 @@ const ModalCreatePropertyPropertyprice: NextPage<Props> = ({ show, onClickOverla
                       </div>
                     </>
                   )}
-                  <div className="mb-4">
+                  <div className="">
                     {DAYMAP.map((day, index) => (
                       <div key={index} className="mb-2">
                         <CheckboxField

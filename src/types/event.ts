@@ -2,6 +2,7 @@ import { Moment } from "moment";
 import { CompanyView } from "./company";
 import { PropertyView } from "./property";
 import { OrdereventView } from "./orderevent";
+import { OrderView } from "./order";
 
 
 export declare interface EventView {
@@ -9,6 +10,8 @@ export declare interface EventView {
   companyId: string;
   propertyId: string;
   unitId: string;
+  orderId: string;
+  ordereventId: string;
   name: string;
   description: string;
   startDt: Moment;
@@ -28,6 +31,7 @@ export declare interface EventView {
 
   company?: CompanyView;
   unit?: PropertyView;
+  order?: OrderView;
   orderevent?: OrdereventView;
 
   // property?: UnitView;

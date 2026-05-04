@@ -169,17 +169,18 @@ const ModalPropertyprice: NextPage<Props> = ({ show, onClickOverlay, id, propert
             >
               {({ values, setFieldValue }) => {
                 return (
-                  <Form className="flex flex-col h-full pt-4" noValidate={true}>
-                    <div className="mb-4">
+                  <Form className="flex flex-col h-full" noValidate={true}>
+                    <div className="">
                       <TextFieldNumber
                         label={'Price'}
                         name={`price`}
                         placeholder={'100...'}
+                        required
                       />
                     </div>
                     {values?.priority !== 1 && (
                       <>
-                        <div className="mb-4">
+                        <div className="">
                           <DateField
                             label='Start Time'
                             name='startTime'
@@ -189,7 +190,7 @@ const ModalPropertyprice: NextPage<Props> = ({ show, onClickOverlay, id, propert
                             placeholderText={"Start Time"}
                           />
                         </div>
-                        <div className="mb-4">
+                        <div className="">
                           <DateField
                             label='End Time'
                             name='endTime'
@@ -201,7 +202,7 @@ const ModalPropertyprice: NextPage<Props> = ({ show, onClickOverlay, id, propert
                         </div>
                       </>
                     )}
-                    <div className="mb-4">
+                    <div className="">
                       {DAYMAP.map((day, index) => (
                         <div key={index} className="mb-2">
                           <CheckboxField

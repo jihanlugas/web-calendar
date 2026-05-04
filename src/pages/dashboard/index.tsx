@@ -25,8 +25,6 @@ type Props = {
 const Index: NextPage<Props> = ({ loginUser }) => {
   const [properties, setProperties] = useState<PropertyView[]>([]);
 
-
-
   const [pageRequest, setPageRequest] = useState<PageProperty>({
     limit: -1,
     page: 1,
@@ -99,7 +97,7 @@ const SingleTimeline: NextPage<SingleTimelineProps> = ({ property }) => {
     propertyId: property.id,
     startDt: moment().startOf("day").toISOString(),
     endDt: moment().endOf("day").toISOString(),
-    preloads: "",
+    preloads: "Order",
   });
 
   // const { isLoading, data, refetch } = useQuery({

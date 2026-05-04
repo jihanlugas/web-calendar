@@ -147,9 +147,12 @@ export default function Timeline({
                 <div>Price</div>
                 <div>{displayMoney(item.price)}</div>
               </div>
-              <div className='flex justify-between mt-2'>
-                <div></div>
-                <div className='font-bold text-green-500' >{"PAID"}</div>
+              <div className='flex justify-end mt-2'>
+                {item.order?.outstanding > 0 ? (
+                  <div className='font-bold text-rose-500' >{"UNPAID"}</div>  
+                ) : (
+                  <div className='font-bold text-green-500' >{"PAID"}</div>
+                )}
               </div>
             </div>
           </div>
@@ -206,7 +209,7 @@ export default function Timeline({
             return (
               <div {...getRootProps()} className='relative flex justify-center items-center text-xl text-gray-50 px-2 font-bold'>
                 <div>{propertyName}</div>
-                <IoCloseSharp title='Disconnect, Click to reconnect' onClick={handleConnect} className={`absolute text-rose-500 right-4 ${isConnected && ' hidden'}`} size={'1.2em'} />
+                <IoCloseSharp title='Disconnect, Click to reconnect' onClick={handleConnect} className={`absolute text-rose-500 right-4 ${isConnected && ' hidden'}`} size={'1.2rem'} />
               </div>
             )
           }}

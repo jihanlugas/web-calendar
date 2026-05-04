@@ -184,7 +184,7 @@ const ModalCreateEvent: NextPage<Props> = ({ show, onClickOverlay, property, eve
                     propertyId={property.id}
                     mutateGetPrice={mutateGetPrice}
                   />
-                  <Form className="flex flex-col h-full pt-4" noValidate={true}>
+                  <Form className="flex flex-col h-full" noValidate={true}>
                     <div className='mb-4'>
                       <div className="">
                         <TextField

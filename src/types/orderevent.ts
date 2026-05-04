@@ -1,6 +1,7 @@
 import { CompanyView } from "./company";
 import { EventView } from "./event";
 import { OrderView } from "./order";
+import { UnitView } from "./unit";
 
 
 export declare interface OrdereventView {
@@ -16,10 +17,12 @@ export declare interface OrdereventView {
   deleteDt?: string;
   orderName: string;
   eventName: string;
+  unitName: string;
   createName: string;
   updateName: string;
 
   company?: CompanyView;
   order?: OrderView;
   event?: EventView;
+  unit?: UnitView;
 }

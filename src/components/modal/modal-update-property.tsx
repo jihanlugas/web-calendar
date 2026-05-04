@@ -113,8 +113,8 @@ const ModalEditProperty: NextPage<Props> = ({ show, onClickOverlay, id }) => {
             >
               {({ values }) => {
                 return (
-                  <Form className="flex flex-col h-full pt-4" noValidate={true}>
-                    <div className="mb-4">
+                  <Form className="flex flex-col h-full" noValidate={true}>
+                    <div className="">
                       <TextField
                         label={'Property Name'}
                         name={'name'}
@@ -123,7 +123,7 @@ const ModalEditProperty: NextPage<Props> = ({ show, onClickOverlay, id }) => {
                         required
                       />
                     </div>
-                    <div className="mb-4">
+                    <div className="">
                       <TextAreaField
                         label={'Description'}
                         name={'description'}
