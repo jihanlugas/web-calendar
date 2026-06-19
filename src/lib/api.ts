@@ -27,6 +27,10 @@ class Api {
 		return Api._fetch('delete', requestPath, payload);
 	};
 
+	static patch = (requestPath: string, payload?: object) => {
+		return Api._fetch('patch', requestPath, payload);
+	};
+
 	static postimage = (requestPath: string, payload?: object) => {
 		const token = localStorage.getItem('token')
 		const transformHeaders = {
@@ -111,7 +115,7 @@ class Api {
 							if (result.payload?.listError) {
 								result.payload.listError = toObjectKeyValue(Object.values(result.payload.listError), 'field', 'msg');
 							}
-							
+
 							if (!result.message) {
 								result.message = error.message
 							}
@@ -163,23 +167,23 @@ class Api {
 					filename = match[1];
 				}
 			}
-	
+
 			// Create a Blob from the response data
 			const blob = new Blob([res.data], { type: 'application/pdf' });
-	
+
 			// Generate a URL for the Blob
 			const url = window.URL.createObjectURL(blob);
-	
+
 			// Create a temporary link element
 			const link = document.createElement('a');
 			link.href = url;
 			link.download = filename; // Use the extracted filename
-	
+
 			// Append link to the DOM, trigger click, and remove it
 			document.body.appendChild(link);
 			link.click();
 			document.body.removeChild(link);
-	
+
 			// Clean up the Blob URL
 			window.URL.revokeObjectURL(url);
 		});

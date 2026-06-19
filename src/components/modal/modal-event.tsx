@@ -25,6 +25,7 @@ import { CompanypaymentmethodView, PageCompanypaymentmethod } from "@/types/comp
 import { PageCompany } from "@/types/company";
 import { LuLayoutList, LuPencil, LuWallet } from "react-icons/lu";
 import { MdOutlineCalendarToday, MdOutlineShoppingCart, MdOutlineTimelapse } from "react-icons/md";
+import { IoMdPricetags } from "react-icons/io";
 
 type Props = {
   show: boolean;
@@ -242,8 +243,8 @@ const SummaryTab: NextPage<SummaryTabProps> = ({ event, refetch, setTab }) => {
   return (
     <div className="flex flex-col h-full">
       <div className="grid grid-cols-2 gap-4">
-        <div className="border rounded p-2 flex">
-          <div className="flex-none w-10 h-10 flex justify-center items-center mr-4 bg-blue-200 text-blue-500 rounded">
+        <div className="border rounded p-4 flex">
+          <div className="flex-none w-10 h-10 flex justify-center items-center mr-2 bg-blue-200 text-blue-500 rounded">
             <MdOutlineCalendarToday className="" size={"1.5em"} />
           </div>
           <div className="flex-1 flex flex-col">
@@ -274,8 +275,8 @@ const SummaryTab: NextPage<SummaryTabProps> = ({ event, refetch, setTab }) => {
             </div>
           </div>
         </div>
-        <div className="border rounded p-2 flex">
-          <div className="flex-none w-10 h-10 flex justify-center items-center mr-4 bg-blue-200 text-blue-500 rounded">
+        <div className="border rounded p-4 flex">
+          <div className="flex-none w-10 h-10 flex justify-center items-center mr-2 bg-blue-200 text-blue-500 rounded">
             <MdOutlineTimelapse className="" size={"1.5em"} />
           </div>
           <div className="flex-1 flex flex-col">
@@ -291,15 +292,15 @@ const SummaryTab: NextPage<SummaryTabProps> = ({ event, refetch, setTab }) => {
                 <div className="text-gray-500">End Date</div>
                 <div className="text-gray-700">{displayDateTime(event.endDt)}</div>
               </div>
-              <div className="mt-auto flex justify-between px-1 py-2 -mx-1 bg-blue-200 rounded text-blue-500 font-bold">
+              <div className="mt-auto flex justify-between px-1 py-2 -mx-1 font-bold">
                 <div className="">Duration</div>
                 <div className="">{displayDuration(event.startDt, event.endDt)}</div>
               </div>
             </div>
           </div>
         </div>
-        <div className="border rounded p-2 flex">
-          <div className="flex-none w-10 h-10 flex justify-center items-center mr-4 bg-green-200 text-green-500 rounded">
+        <div className="border rounded p-4 flex">
+          <div className="flex-none w-10 h-10 flex justify-center items-center mr-2 bg-green-200 text-green-500 rounded">
             <MdOutlineShoppingCart className="" size={"1.5em"} />
           </div>
           <div className="flex-1 flex flex-col">
@@ -356,15 +357,15 @@ const SummaryTab: NextPage<SummaryTabProps> = ({ event, refetch, setTab }) => {
                 <div className="text-gray-700">{displayMoney(event.order.tax)}</div>
               </div>
             )} */}
-              <div className="mt-auto flex justify-between px-1 py-2 -mx-1 bg-green-200 rounded text-green-500 font-bold">
+              <div className="mt-auto flex justify-between px-1 py-2 -mx-1 bg-rounded font-bold">
                 <div className="">Total Order</div>
                 <div className="">{displayMoney(event.order.total)}</div>
               </div>
             </div>
           </div>
         </div>
-        <div className="border rounded p-2 flex">
-          <div className="flex-none w-10 h-10 flex justify-center items-center mr-4 bg-rose-200 text-rose-500 rounded">
+        <div className="border rounded p-4 flex">
+          <div className="flex-none w-10 h-10 flex justify-center items-center mr-2 bg-rose-200 text-rose-500 rounded">
             <LuWallet className="" size={"1.5em"} />
           </div>
           <div className="flex-1 flex flex-col">
@@ -396,14 +397,14 @@ const SummaryTab: NextPage<SummaryTabProps> = ({ event, refetch, setTab }) => {
                 </div>
               )}
               {event.order.outstanding > 0 ? (
-                <div className="mt-auto flex justify-between px-1 py-2 -mx-1  rounded text-rose-500 font-bold">
-                  <div className=""></div>
-                  <div className="bg-rose-200 py-1 px-2 rounded-lg ">{"UNPAID"}</div>
+                <div className="mt-auto flex justify-between px-1 py-2 -mx-1 bg-rounded font-bold text-rose-500">
+                  <div className={''}>{''}</div>
+                  <div className={''}>{'UNPAID'}</div>
                 </div>
               ) : (
-                <div className="mt-auto flex justify-between px-1 py-2 -mx-1  rounded text-green-500 font-bold">
-                  <div className=""></div>
-                  <div className="bg-green-200 py-1 px-2 rounded-lg ">{"PAID"}</div>
+                <div className="mt-auto flex justify-between px-1 py-2 -mx-1 bg-rounded font-bold text-green-500">
+                  <div className={''}>{''}</div>
+                  <div className={''}>{'PAID'}</div>
                 </div>
               )}
             </div>
@@ -509,68 +510,109 @@ const EditTab: NextPage<EditTabProps> = ({ property, event, onClickOverlay, setT
             />
             <Form className="flex flex-col h-full" noValidate={true}>
               <div className='mb-4'>
-                <div className="">
-                  <TextField
-                    label={'Event Name'}
-                    name={'name'}
-                    type={'text'}
-                    placeholder={'Event Name'}
-                    required
-                  />
+                {/* Event Information */}
+                <div>
+                  <div className="flex">
+                    <div className="flex-none w-10 h-10 flex justify-center items-center mr-2 bg-blue-200 text-blue-500 rounded">
+                      <MdOutlineCalendarToday className="" size={"1.5em"} />
+                    </div>
+                    <div className="h-10 min-h-10 flex-none flex items-center mb-2">
+                      <div className="font-bold">Event Information</div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="">
+                      <div className="">
+                        <TextField
+                          label={'Event Name'}
+                          name={'name'}
+                          type={'text'}
+                          placeholder={'Event Name'}
+                          required
+                        />
+                      </div>
+                      <div className="">
+                        <TextAreaField
+                          label={'Description'}
+                          name={'description'}
+                          placeholder={'Description'}
+                        />
+                      </div>
+                    </div>
+                    <div className="">
+                      <div className="">
+                        <DropdownField
+                          label={"Unit"}
+                          name={"unitId"}
+                          items={property.units}
+                          keyValue={"id"}
+                          keyLabel={"name"}
+                          placeholder="Select Unit"
+                          placeholderValue={""}
+                          required
+                        />
+                      </div>
+                      <div className="">
+                        <DropdownField
+                          label={"Status"}
+                          name={"status"}
+                          items={EVENT_STATUS}
+                          keyValue={"value"}
+                          keyLabel={"label"}
+                          placeholder="Select Status"
+                          placeholderValue={""}
+                          disabled={values.status === EVENT_STATUS_CONFIRM}
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div className="">
-                  <TextAreaField
-                    label={'Description'}
-                    name={'description'}
-                    placeholder={'Description'}
-                  />
+                <hr className="mb-4" />
+                {/* Schedule */}
+                <div>
+                  <div className="flex">
+                    <div className="flex-none w-10 h-10 flex justify-center items-center mr-2 bg-blue-200 text-blue-500 rounded">
+                      <MdOutlineTimelapse className="" size={"1.5em"} />
+                    </div>
+                    <div className="h-10 min-h-10 flex-none flex items-center mb-2">
+                      <div className="font-bold">Schedule</div>
+                    </div>
+                  </div>
+                  <div className=''>
+                    <DateField
+                      label='Start Date'
+                      name='startDt'
+                      required
+                    />
+                  </div>
+                  <div className=''>
+                    <DateField
+                      label='End Date'
+                      name='endDt'
+                      required
+                    />
+                  </div>
                 </div>
-                <div className="">
-                  <DropdownField
-                    label={"Unit"}
-                    name={"unitId"}
-                    items={property.units}
-                    keyValue={"id"}
-                    keyLabel={"name"}
-                    placeholder="Select Unit"
-                    placeholderValue={""}
-                    required
-                  />
-                </div>
-                <div className="">
-                  <DropdownField
-                    label={"Status"}
-                    name={"status"}
-                    items={EVENT_STATUS}
-                    keyValue={"value"}
-                    keyLabel={"label"}
-                    placeholder="Select Status"
-                    placeholderValue={""}
-                    disabled={values.status === EVENT_STATUS_CONFIRM}
-                    required
-                  />
-                </div>
-                <div className=''>
-                  <DateField
-                    label='Start Date'
-                    name='startDt'
-                    required
-                  />
-                </div>
-                <div className=''>
-                  <DateField
-                    label='End Date'
-                    name='endDt'
-                    required
-                  />
-                </div>
-                <div className="">
-                  <TextFieldNumber
-                    label={'Price'}
-                    name={`price`}
-                    placeholder={'1000...'}
-                    required
-                  />
+                <hr className="mb-4" />
+                {/* Pricing */}
+                <div>
+                  <div className="flex">
+                    <div className="flex-none w-10 h-10 flex justify-center items-center mr-2 bg-green-200 text-green-500 rounded">
+                      <IoMdPricetags className="" size={"1.5em"} />
+                    </div>
+                    <div className="h-10 min-h-10 flex-none flex items-center mb-2">
+                      <div className="font-bold">Pricing</div>
+                    </div>
+                  </div>
+                  <div className="">
+                    <TextFieldNumber
+                      label={'Price'}
+                      name={`price`}
+                      placeholder={'1000...'}
+                      required
+                    />
+                  </div>
                 </div>
               </div>
               <div className="mt-auto">
@@ -814,6 +856,7 @@ const DisplayOrderPayment: NextPage<DisplayOrderPaymentProps> = ({ event }) => {
             <div className={''}>{'Total Payment'}</div>
             <div className={'text-green-500'}>{displayMoney(event.order.payment)}</div>
           </div>
+
           {event.order.outstanding > 0 && (
             <div className="flex justify-between mb-2">
               <div className={''}>{'Outstanding'}</div>

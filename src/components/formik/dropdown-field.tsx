@@ -41,7 +41,7 @@ const DropdownField: NextPage<Props> = ({ label, name, items, required, placehol
 	return (
 		<div className={'flex flex-col w-full relative pb-6'}>
 			{label && (
-				<div className={''}>
+				<div className={'mb-1'}>
 					<span>{label}</span>
 					{required && <span className={'text-rose-600'}>{'*'}</span>}
 				</div>
