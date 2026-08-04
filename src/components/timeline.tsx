@@ -124,14 +124,15 @@ export default function Timeline({
             className="rct-item-content"
             style={{ maxHeight: `${itemContext.dimensions.height}` }}
           >
-            {item.name}
+            {item.order.customerName}
           </div>
           {itemContext.useResizeHandle ? <div key={itemprops.key} {...rightResizeProps} /> : ''}
         </div>
         <Tooltip id={`tootltip-item-${item.id}`} style={{ zIndex: 999 }}>
           <div className='text-xs'>
             <div className='mb-2'>
-              <div className="font-bold">{item.name}</div>
+              <div className="font-bold">{item.order.customerName}</div>
+              <div className="whitespace-pre-line">{item.name}</div>
               <div className="whitespace-pre-line">{item.description}</div>
             </div>
             <div>

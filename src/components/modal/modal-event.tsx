@@ -32,6 +32,7 @@ type Props = {
   onClickOverlay: () => void;
   property: PropertyView
   eventId: string
+  dorefetch: () => void;
 }
 
 const schema = Yup.object().shape({
@@ -61,7 +62,7 @@ const schemaOrderpayment = Yup.object().shape({
 });
 
 
-const ModalEvent: NextPage<Props> = ({ show, onClickOverlay, property, eventId }) => {
+const ModalEvent: NextPage<Props> = ({ show, onClickOverlay, property, eventId, dorefetch }) => {
 
   const [event, setEvent] = useState<EventView>(null)
   const [companypaymentmethods, setCompanypaymentmethods] = useState<CompanypaymentmethodView[]>([])
@@ -195,7 +196,7 @@ const ModalEvent: NextPage<Props> = ({ show, onClickOverlay, property, eventId }
             <>
               {tab === 'summary' && <SummaryTab event={event} setTab={setTab} refetch={refetch} />}
               {tab === 'edit' && <EditTab event={event} property={property} onClickOverlay={onClickOverlay} setTab={setTab} refetch={refetch} />}
-              {tab === 'payment' && <PaymentTab event={event} property={property} onClickOverlay={onClickOverlay} setTab={setTab} refetch={refetch} companypaymentmethods={companypaymentmethods} />}
+              {tab === 'payment' && <PaymentTab event={event} property={property} onClickOverlay={onClickOverlay} setTab={setTab} refetch={refetch} companypaymentmethods={companypaymentmethods} dorefetch={dorefetch} />}
             </>
           ) : (
             <div className="flex justify-center items-center h-full m-auto">
@@ -644,9 +645,10 @@ interface PaymentTabProps {
   setTab?: (tab: 'summary' | 'edit' | 'payment') => void
   refetch: (options?: RefetchOptions) => Promise<QueryObserverResult<any, Error>>
   companypaymentmethods: CompanypaymentmethodView[]
+  dorefetch: () => void;
 }
 
-const PaymentTab: NextPage<PaymentTabProps> = ({ property, event, onClickOverlay, setTab, refetch, companypaymentmethods }) => {
+const PaymentTab: NextPage<PaymentTabProps> = ({ property, event, onClickOverlay, setTab, refetch, companypaymentmethods, dorefetch }) => {
 
   const defaultFormikValue: CreateOrderpayment = {
     companyId: property.companyId,
@@ -680,6 +682,7 @@ const PaymentTab: NextPage<PaymentTabProps> = ({ property, event, onClickOverlay
           // onClickOverlay();
           resetForm();
           refetch();
+          dorefetch();
         } else if (payload?.listError) {
           setErrors(payload.listError);
         } else {

@@ -73,8 +73,9 @@ type SingleTimelineProps = {
 
 const defaultEvent: EventNew = {
   companyId: '',
-  name: '',
-  description: '',
+  customerId: '',
+  customerName: '',
+  customerPhoneNumber: '',
   propertyId: '',
   unitId: '',
   startDt: new Date(),
@@ -128,8 +129,9 @@ const SingleTimeline: NextPage<SingleTimelineProps> = ({ property }) => {
 
     setEventNew({
       companyId: property.companyId,
-      name: '',
-      description: '',
+      customerId: '',
+      customerName: '',
+      customerPhoneNumber: '',
       propertyId: property.id,
       unitId: groupId,
       startDt: new Date(startDt.setHours(startDt.getHours(), 0, 0, 0)),
@@ -260,6 +262,7 @@ const SingleTimeline: NextPage<SingleTimelineProps> = ({ property }) => {
         onClickOverlay={() => toggleModalEvent(true)}
         eventId={eventId}
         property={property}
+        dorefetch={() => setDorefetch(dorefetch + 1)}
       />
       <div className='bg-white mb-4 p-4 rounded shadow'>
         {/* <div className='flex justify-end'>

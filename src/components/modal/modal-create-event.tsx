@@ -33,8 +33,13 @@ type PriceWatcherProps = {
 
 
 const schema = Yup.object().shape({
-  name: Yup.string().required('Required'),
-  description: Yup.string(),
+  customerId: Yup.string(),
+  customerName: Yup.string().when("customerId", {
+    is: (customerId) => !customerId || customerId.trim() === "",
+    then: (schema) => schema.required("Nama customer wajib diisi"),
+    otherwise: (schema) => schema.notRequired(),
+  }),
+  customerPhoneNumber: Yup.string(),
   unitId: Yup.string().required('Required'),
   startDt: Yup.string().required('Required'),
   endDt: Yup.string()
@@ -185,8 +190,8 @@ const ModalCreateEvent: NextPage<Props> = ({ show, onClickOverlay, property, eve
                     mutateGetPrice={mutateGetPrice}
                   />
                   <Form className="flex flex-col h-full" noValidate={true}>
-                    <div className='mb-4'>
-                      <div className="">
+                    <div className='my-4'>
+                      {/* <div className="">
                         <TextField
                           label={'Event Name'}
                           name={'name'}
@@ -201,7 +206,7 @@ const ModalCreateEvent: NextPage<Props> = ({ show, onClickOverlay, property, eve
                           name={'description'}
                           placeholder={'Description'}
                         />
-                      </div>
+                      </div> */}
                       <div className="">
                         <DropdownField
                           label={"Unit"}

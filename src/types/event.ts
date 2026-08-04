@@ -41,8 +41,11 @@ export declare interface EventNew {
   companyId: string;
   propertyId: string;
   unitId: string;
-  name: string;
-  description: string;
+  // name: string;
+  // description: string;
+  customerId: string;
+  customerName: string;
+  customerPhoneNumber: string;
   startDt: string | Date ;
   endDt: string | Date ;
   status: string
