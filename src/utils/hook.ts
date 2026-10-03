@@ -32,7 +32,7 @@ export function useDebounce(value, delay) {
   return debouncedValue;
 }
 
-export default function useWebSocket({ url, autoReconnect = true }) {
+export function useWebSocket(url, autoReconnect = true) {
   const wsRef = useRef(null);
   const reconnectRef = useRef(null);
   const [isConnected, setIsConnected] = useState(false);

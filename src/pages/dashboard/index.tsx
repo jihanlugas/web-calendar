@@ -14,7 +14,7 @@ import { Api } from '@/lib/api';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { EventNew, EventView } from '@/types/event';
 import notif from '@/utils/notif';
-import useWebSocket from '@/utils/hook';
+import { useWebSocket } from '@/utils/hook';
 import { EVENT_STATUS_CONFIRM } from '@/utils/constant';
 import ModalEvent from '@/components/modal/modal-event';
 
@@ -121,7 +121,7 @@ const SingleTimeline: NextPage<SingleTimelineProps> = ({ property }) => {
   }
 
   const url = process.env.WS_END_POINT + '/ws?propertyId=' + property.id;
-  const { isConnected, messages, connect, sendMessage } = useWebSocket({ url, autoReconnect: true });
+  const { isConnected, messages, connect, sendMessage } = useWebSocket(url, true);
 
   const onCanvasClick = (groupId, time, e) => {
     const startDt = new Date(time)
