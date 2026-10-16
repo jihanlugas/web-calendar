@@ -27,6 +27,7 @@ export declare interface PageProduct extends Paging {
   companyName?: string;
   createName?: string;
   company?: string;
+  search?: string;
   preloads?: string;
   startDt?: string | DateConstructor;
   endDt?: string | DateConstructor;

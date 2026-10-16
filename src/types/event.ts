@@ -43,6 +43,7 @@ export declare interface EventNew {
   unitId: string;
   // name: string;
   // description: string;
+  isNewCustomer: boolean;
   customerId: string;
   customerName: string;
   customerPhoneNumber: string;

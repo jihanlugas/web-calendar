@@ -73,6 +73,7 @@ type SingleTimelineProps = {
 
 const defaultEvent: EventNew = {
   companyId: '',
+  isNewCustomer: false,
   customerId: '',
   customerName: '',
   customerPhoneNumber: '',
@@ -129,6 +130,7 @@ const SingleTimeline: NextPage<SingleTimelineProps> = ({ property }) => {
 
     setEventNew({
       companyId: property.companyId,
+      isNewCustomer: false,
       customerId: '',
       customerName: '',
       customerPhoneNumber: '',

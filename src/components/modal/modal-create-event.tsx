@@ -11,11 +11,12 @@ import { EVENT_STATUS } from "@/utils/constant";
 import DropdownField from "@/components/formik/dropdown-field";
 import TextAreaField from "@/components/formik/text-area-field";
 import ButtonSubmit from "@/components/formik/button-submit";
-import { UseMutateFunction, useMutation } from "@tanstack/react-query";
+import { UseMutateFunction, useMutation, useQuery } from "@tanstack/react-query";
 import { Api } from "@/lib/api";
 import { useEffect, useRef, useState } from "react";
 import notif from "@/utils/notif";
 import TextFieldNumber from "@/components/formik/text-field-number";
+import { CustomerView, PageCustomer } from "@/types/customer";
 
 type Props = {
   show: boolean;
@@ -33,13 +34,18 @@ type PriceWatcherProps = {
 
 
 const schema = Yup.object().shape({
-  customerId: Yup.string(),
-  customerName: Yup.string().when("customerId", {
-    is: (customerId) => !customerId || customerId.trim() === "",
-    then: (schema) => schema.required("Nama customer wajib diisi"),
-    otherwise: (schema) => schema.notRequired(),
+  customerId: Yup.string().when('isNewCustomer', {
+    is: false,
+    then: (schema) => schema.required('Required'),
+    otherwise: (schema) => schema,
+  }),
+  customerName: Yup.string().when('isNewCustomer', {
+    is: true,
+    then: (schema) => schema.required('Required'),
+    otherwise: (schema) => schema,
   }),
   customerPhoneNumber: Yup.string(),
+  isNewCustomer: Yup.boolean(),
   unitId: Yup.string().required('Required'),
   startDt: Yup.string().required('Required'),
   endDt: Yup.string()
@@ -107,6 +113,20 @@ export function PriceWatcher({ propertyId, mutateGetPrice, skipInitialUpdate = f
 const ModalCreateEvent: NextPage<Props> = ({ show, onClickOverlay, property, eventNew }) => {
 
   const [initFormikValue, setInitFormikValue] = useState(eventNew)
+  const [customers, setCustomers] = useState<CustomerView[]>([]);
+
+
+  const [pageRequest, setPageRequest] = useState<PageCustomer>({
+    limit: 100,
+    page: 1,
+    preloads: "",
+  });
+
+  const { data, isLoading: isLoadingCustomers } = useQuery({
+    queryKey: ['customer'],
+    queryFn: () => Api.get('/customer', pageRequest),
+    enabled: show, // Only fetch when modal is shown
+  })
 
   const { mutate: mutateCreate, isPending: isPendingCreate } = useMutation({
     mutationKey: ['event', 'create'],
@@ -164,6 +184,19 @@ const ModalCreateEvent: NextPage<Props> = ({ show, onClickOverlay, property, eve
     }
   }, [show])
 
+  useEffect(() => {
+    if (data?.status) {
+      setCustomers(data.payload.list);
+    }
+  }, [data]);
+
+  const handleChangeCustomerType = (setFieldValue, val: boolean) => {
+    setFieldValue('isNewCustomer', val);
+    setFieldValue('customerId', '');
+    setFieldValue('customerName', '');
+    setFieldValue('customerPhoneNumber', '');
+  }
+
 
   return (
     <Modal show={show && initFormikValue !== null} onClickOverlay={onClickOverlay} layout={'sm:max-w-2xl'}>
@@ -182,7 +215,7 @@ const ModalCreateEvent: NextPage<Props> = ({ show, onClickOverlay, property, eve
             enableReinitialize={true}
             onSubmit={handleSubmit}
           >
-            {({ values, setFieldValue }) => {
+            {({ values, errors, setFieldValue }) => {
               return (
                 <>
                   <PriceWatcher
@@ -207,6 +240,54 @@ const ModalCreateEvent: NextPage<Props> = ({ show, onClickOverlay, property, eve
                           placeholder={'Description'}
                         />
                       </div> */}
+                      <div className="mb-4 max-w-xl ">
+                        <div className="flex items-center">
+                          <label className="flex items-center mr-4">
+                            <input type="radio" className="h-4 w-4 mr-2 accent-current" name="custamerType" value={"old"} onChange={() => handleChangeCustomerType(setFieldValue, false)} checked={!values.isNewCustomer} />
+                            <span>Pelanggan Lama</span>
+                          </label>
+                          <label className="flex items-center mr-4">
+                            <input type="radio" className="h-4 w-4 mr-2 accent-current" name="custamerType" value={"new"} onChange={() => handleChangeCustomerType(setFieldValue, true)} checked={values.isNewCustomer} />
+                            <span>Pelanggan Baru</span>
+                          </label>
+                        </div>
+                      </div>
+                      {values.isNewCustomer ? (
+                        <>
+                          <div className="">
+                            <TextField
+                              label={'Nama Customer'}
+                              name={'customerName'}
+                              type={'text'}
+                              placeholder={'Nama Customer'}
+                              required
+                            />
+                          </div>
+                          <div className="">
+                            <TextField
+                              label={'Nomor Telepon Customer'}
+                              name={'customerPhoneNumber'}
+                              type={'text'}
+                              placeholder={'Nomor Telepon Customer'}
+                            />
+                          </div>
+                        </>
+                      ) : (
+                        <div className="">
+                          <DropdownField
+                            label={"Customer"}
+                            name={"customerId"}
+                            items={customers}
+                            keyValue={"id"}
+                            keyLabel={"name"}
+                            placeholder="Select Customer"
+                            placeholderValue={""}
+                            required
+                            field={true}
+                            isLoading={isLoadingCustomers}
+                          />
+                        </div>
+                      )}
                       <div className="">
                         <DropdownField
                           label={"Unit"}
@@ -264,9 +345,14 @@ const ModalCreateEvent: NextPage<Props> = ({ show, onClickOverlay, property, eve
                       </div>
                     </div>
                     {process.env.DEBUG === 'true' && (
-                      <div className="hidden md:flex mb-4 p-4 whitespace-pre-wrap">
-                        {JSON.stringify(values, null, 4)}
-                      </div>
+                      <>
+                        <div className="hidden md:flex mb-4 p-4 whitespace-pre-wrap">
+                          {JSON.stringify(values, null, 4)}
+                        </div>
+                        <div className="hidden md:flex mb-4 p-4 whitespace-pre-wrap">
+                          {JSON.stringify(errors, null, 4)}
+                        </div>
+                      </>
                     )}
                   </Form>
                 </>
